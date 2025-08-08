@@ -1,0 +1,48 @@
+[
+    {
+        "customerID": "123456789",
+        "transactionID": null,
+        "documents": [
+            {
+                "documentID": "1.CV de nghi cung cap TK nhan tien khen thuong.signed",
+                "documentType": "công văn",
+                "documentFormat": "pdf",
+                "documentPath": "data/sample_docs/1.CV de nghi cung cap TK nhan tien khen thuong.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
+                "documentID": "275-NSG-TCHC.signed",
+                "documentType": "công văn",
+                "documentFormat": "pdf",
+                "documentPath": "data/sample_docs/275-NSG-TCHC.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
+                "documentID": "image-based",
+                "documentType": "công văn",
+                "documentFormat": "pdf",
+                "documentPath": "data/sample_docs/image-based.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
+                "documentID": "text-based",
+                "documentType": "công văn",
+                "documentFormat": "pdf",
+                "documentPath": "data/sample_docs/text-based.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
+                "documentID": "Giấy phép kinh doanh Phòng khám Táo Đỏ",
+                "documentType": "công văn",
+                "documentFormat": "pdf",
+                "documentPath": "data/sample_docs/Giấy phép kinh doanh Phòng khám Táo Đỏ.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            }
+        ]
+    }
+]
