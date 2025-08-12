@@ -116,6 +116,40 @@ document-quality-assessment-ocr/
 └── run.sh                # Execution script
 ```
 
+## Detailed Workflow
+
+This section outlines the internal flow of operations when the document quality assessment application processes a batch of documents.
+
+### 1. Initialization & Input Loading
+- The process begins when `run.sh` is executed, which sets up the Python environment and calls `src/main.py`.
+- `src/main.py` parses command-line arguments (input/output file paths, timeout).
+- It then loads the input JSON file (e.g., `input.json`) using utility functions from `src/utils.py`. This JSON contains batches of documents to be processed.
+
+### 2. Document Iteration
+- `src/main.py` iterates through each document batch and then each individual document specified in the loaded input data.
+- For each document, it dispatches the processing to the core evaluation pipeline.
+
+### 3. File Handling & Image Extraction
+- The core evaluation logic (primarily in `src/evaluator.py`) determines the document's format (e.g., PDF, TIFF).
+- It then calls the appropriate handler from the `src/handlers/` directory (e.g., `src/handlers/pdf_handler.py` for PDF files).
+- The handler's responsibility is to open the document, extract relevant metadata (like reported DPI), and convert each page into a processable image format (e.g., PIL Image objects).
+
+### 4. Criteria Evaluation
+- The extracted images and metadata are passed to `src/criteria.py`.
+- `src/criteria.py` iterates through a predefined list of quality criteria (loaded from `config/criteria_config.json`).
+- For each criterion (e.g., resolution, brightness, blur), it executes specific image processing algorithms (using libraries like OpenCV) on the extracted images.
+- The results are compared against the thresholds defined in the configuration.
+- For "resolution", a smart DPI estimation is performed if the metadata DPI is too low, analyzing character heights within the image content.
+
+### 5. Result Aggregation & Decision
+- `src/evaluator.py` collects the pass/fail/warning results from each criterion check.
+- Based on the `type` of each criterion (required, recommended, warning), it makes a final decision on whether the document is `isAccepted: true` or `isAccepted: false`. A failure in any `required` criterion leads to immediate rejection.
+
+### 6. Output & Logging
+- The final evaluation result for each document is compiled.
+- `src/main.py` collects these results and writes them to the specified output JSON file (e.g., `output.json`).
+- Throughout the entire process, detailed logs (including resource usage and specific rejection reasons) are generated and saved in the `logs/` directory, providing a comprehensive audit trail.
+
 ## Testing
 
 ```bash

@@ -22,11 +22,11 @@ def load_criteria_config(config_path: str) -> List[CriteriaConfig]:
 
 CRITERIA = load_criteria_config('config/criteria_config.json')
 
-def _get_images_from_path(doc_path: str, doc_format: str, max_pages: int = 5) -> list[Image.Image]:
+def _get_images_from_path(doc_path: str, doc_format: str, max_pages: int = 5, dpi: int = 200) -> list[Image.Image]:
     format_lower = doc_format.lower()
     try:
         if format_lower == 'pdf':
-            return get_images_from_pdf(doc_path, max_pages)
+            return get_images_from_pdf(doc_path, max_pages, dpi=dpi)
         elif format_lower == 'tiff':
             return get_images_from_tiff(doc_path)
         else:
@@ -78,7 +78,12 @@ def estimate_dpi_from_image(img: Image.Image, expected_char_height_mm: float = 2
         return 0.0
 
 def calculate_skew(img: Image.Image) -> float:
-    """Estimate skew angle simply using projection profile."""
+    """Estimate skew angle on a resized image for performance."""
+    # Resize for performance
+    max_size = 1000
+    if img.width > max_size or img.height > max_size:
+        img.thumbnail((max_size, max_size))
+
     np_img = np.array(img)
     angles = np.arange(-5, 6)  # Limit for speed
     scores = []
@@ -120,7 +125,10 @@ def check_criteria(doc_path: str, criteria: CriteriaConfig, doc_format: str) -> 
             else:
                 doc_format = 'image'
         
-        images = _get_images_from_path(doc_path, doc_format)
+        resolution_criteria_config = next((c for c in CRITERIA if c.name == 'resolution'), None)
+        min_dpi_to_extract = int(resolution_criteria_config.threshold.min_dpi) if resolution_criteria_config and resolution_criteria_config.threshold else 200
+
+        images = _get_images_from_path(doc_path, doc_format, dpi=min_dpi_to_extract)
         if not images:
             return False, "No images extracted"
 

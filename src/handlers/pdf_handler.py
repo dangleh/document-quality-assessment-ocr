@@ -9,8 +9,7 @@ import time
 
 # Import utilities
 import sys
-sys.path.append('../..')
-from src.utils import monitor_resources, get_file_size_mb, get_image_info, log_resource_usage
+from src.utils import logging, get_file_size_mb, get_image_info, monitor_resources, log_resource_usage
 
 def get_images_from_pdf(path: str, max_pages: int = 5, dpi: int = 72) -> list[Image.Image]:
     doc = None
@@ -77,6 +76,9 @@ def get_images_from_pdf(path: str, max_pages: int = 5, dpi: int = 72) -> list[Im
                     
                 except Exception as page_error:
                     logging.error(f"Error processing page {page_num + 1}: {page_error}")
+                    # If we fail on the first page, raise immediately
+                    if not images:
+                        raise RuntimeError(f"Failed to extract even the first page: {page_error}") from page_error
                     continue
                     
             doc.close()
@@ -114,7 +116,7 @@ def get_images_from_pdf(path: str, max_pages: int = 5, dpi: int = 72) -> list[Im
 
 def test_pdf_handler():
     """Test function to debug PDF processing with different DPI settings"""
-    test_path = "data/docs/1.CV de nghi cung cap TK nhan tien khen thuong.signed.pdf"
+    test_path = "sample-local-pdf.pdf"
     
     # Test with different DPI settings to measure resource usage
     dpi_settings = [72, 150, 300]

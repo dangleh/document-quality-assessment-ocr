@@ -64,7 +64,6 @@ data/docs/*
 # Documentation
 README.md
 Makefile
-run.sh
 pytest.ini
 
 # Docker
