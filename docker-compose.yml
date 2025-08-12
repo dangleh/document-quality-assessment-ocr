@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  document-quality-assessment:
+    build: .
+    container_name: doc-quality-ocr
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./output:/app/output
+      - ./temp:/app/temp
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+    working_dir: /app
+    command: ["python", "src/main.py", "--help"]
+    
+  # Development service with hot reload
+  dev:
+    build: .
+    container_name: doc-quality-ocr-dev
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./output:/app/output
+      - ./temp:/app/temp
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=DEBUG
+    working_dir: /app
+    command: ["tail", "-f", "/dev/null"]  # Keep container running for development
+    
+  # Test service
+  test:
+    build: .
+    container_name: doc-quality-ocr-test
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./output:/app/output
+      - ./temp:/app/temp
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=DEBUG
+    working_dir: /app
+    command: ["python", "-m", "pytest", "tests/", "-v"]
+    
+  # Batch processing service
+  batch:
+    build: .
+    container_name: doc-quality-ocr-batch
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./output:/app/output
+      - ./temp:/app/temp
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+      - BATCH_SIZE=100
+      - TIMEOUT=600
+    working_dir: /app
+    command: ["python", "src/main.py", "--input", "data/batch_input.json", "--output", "output/batch_results.json", "--timeout", "600"]

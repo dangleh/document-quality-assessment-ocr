@@ -1,40 +1,14 @@
+import os
 import json
 import statistics
 import numpy as np
-from PIL import Image, ImageStat, ImageFilter, ImageChops, ImageOps
-from pydantic import BaseModel, Field
-from typing import Optional, Tuple, List
-from enum import Enum
-from src.utils import logging
-
+from PIL import Image, ImageStat, ImageFilter, ImageChops
+from typing import List, Tuple
+import fitz
+from src.utils import logging, get_file_size_mb, get_image_info
 from src.handlers.pdf_handler import get_images_from_pdf
 from src.handlers.tiff_handler import get_images_from_tiff
-
-class CriteriaType(str, Enum):
-    required = "required"
-    recommended = "recommended"
-    warning = "warning"
-
-class Threshold(BaseModel):
-    min_dpi: Optional[int] = None
-    min_width: Optional[int] = None
-    min: Optional[int] = None
-    max: Optional[int] = None
-    min_contrast: Optional[int] = None
-    min_variance: Optional[int] = None
-    max_deg: Optional[int] = None
-    min_percent: Optional[int] = None
-    max_percent: Optional[int] = None
-    max_overlap: Optional[int] = None
-    min_entropy: Optional[float] = None
-    min_content_ratio: Optional[int] = None
-
-class CriteriaConfig(BaseModel):
-    name: str
-    type: CriteriaType
-    description: str
-    threshold: Optional[Threshold] = None
-    aggregate_mode: Optional[str] = "min" 
+from src.models import CriteriaConfig, CriteriaType, Threshold
 
 def load_criteria_config(config_path: str) -> List[CriteriaConfig]:
     try:
@@ -49,13 +23,17 @@ CRITERIA = load_criteria_config('config/criteria_config.json')
 
 def _get_images_from_path(doc_path: str, doc_format: str, max_pages: int = 5) -> list[Image.Image]:
     format_lower = doc_format.lower()
-    if format_lower == 'pdf':
-        return get_images_from_pdf(doc_path, max_pages)
-    elif format_lower == 'tiff':
-        return get_images_from_tiff(doc_path)
-    else:
-        # Default cho PNG/JPG/etc.
-        return [Image.open(doc_path).convert('L')]
+    try:
+        if format_lower == 'pdf':
+            return get_images_from_pdf(doc_path, max_pages)
+        elif format_lower == 'tiff':
+            return get_images_from_tiff(doc_path)
+        else:
+            # Default cho PNG/JPG/etc.
+            return [Image.open(doc_path).convert('L')]
+    except Exception as e:
+        logging.error(f"Error extracting images from {doc_path}: {e}")
+        raise ValueError(f"Failed to extract images from {doc_path}: {str(e)}")
     
 def calculate_skew(img: Image.Image) -> float:
     """Ước lượng góc lệch đơn giản bằng projection profile."""
@@ -88,13 +66,26 @@ def check_criteria(doc_path: str, criteria: CriteriaConfig, doc_format: str) -> 
     name = criteria.name
     thresh = criteria.threshold if criteria.threshold else Threshold()
     agg_mode = criteria.aggregate_mode
+    
     try:
-        images = _get_images_from_path(doc_path, doc_format)  # Lấy list images
+        # Add timeout protection and better error handling
+        if doc_format is None:
+            # Try to infer format from file extension
+            import os
+            file_ext = os.path.splitext(doc_path)[1].lower()
+            if file_ext == '.pdf':
+                doc_format = 'pdf'
+            elif file_ext in ['.tiff', '.tif']:
+                doc_format = 'tiff'
+            else:
+                doc_format = 'image'
+        
+        images = _get_images_from_path(doc_path, doc_format)
         if not images:
             return False, "No images extracted"
 
         if name == "file_integrity":
-            return True, ""  # Đã pass nếu get_images thành công
+            return True, "" 
 
         # Helper để aggregate metrics qua pages
         def aggregate(values: List[float], mode: str = "min") -> float:
@@ -110,14 +101,74 @@ def check_criteria(doc_path: str, criteria: CriteriaConfig, doc_format: str) -> 
                 return all(v for v in values)
             return min(values)  # Default
 
-        # Triển khai từng tiêu chí với loop qua images
         if name == "resolution":
             widths = [img.size[0] for img in images]
-            dpis = [img.info.get('dpi', (300, 300))[0] if hasattr(img, 'info') else 300 for img in images]
-            avg_width = aggregate(widths, "avg")
-            avg_dpi = aggregate(dpis, "avg")
-            if avg_width < thresh.min_width or avg_dpi < thresh.min_dpi:
-                return False, f"Resolution too low (avg_width: {avg_width}, avg_dpi: {avg_dpi})"
+            agg_width = aggregate(widths, agg_mode)
+            
+            # Improved DPI detection with timeout protection
+            dpis = []
+            try:
+                # First, try to get DPI from image metadata (works for TIFF, PNG, etc.)
+                for img in images:
+                    if 'dpi' in img.info:
+                        dpi = img.info['dpi']
+                        if isinstance(dpi, tuple) and len(dpi) > 0:
+                            dpis.append(float(dpi[0]))
+                        elif isinstance(dpi, (int, float)):
+                            dpis.append(float(dpi))
+
+                # If metadata is missing (e.g., for some PDFs), calculate effective DPI
+                if not dpis and doc_format.lower() == 'pdf':
+                    logging.debug("DPI not in metadata, calculating effective DPI for PDF.")
+                    try:
+                        doc = fitz.open(doc_path)
+                        num_pages_to_check = min(len(images), len(doc), 5)  # Limit to 5 pages max
+                        
+                        for i in range(num_pages_to_check):
+                            try:
+                                page = doc.load_page(i)
+                                pixel_width = images[i].size[0]
+                                physical_width_inches = page.rect.width / 72
+                                
+                                if physical_width_inches > 0:
+                                    effective_dpi = pixel_width / physical_width_inches
+                                    dpis.append(effective_dpi)
+                                    logging.debug(f"Page {i+1} calculated effective DPI: {effective_dpi:.2f}")
+                                
+                                # Add safety check to prevent infinite loops
+                                if len(dpis) >= 10:  # Max 10 DPI calculations
+                                    logging.warning(f"Reached max DPI calculations limit for {doc_path}")
+                                    break
+                                    
+                            except Exception as page_error:
+                                logging.warning(f"Error processing page {i+1}: {page_error}")
+                                continue
+                                
+                        doc.close()
+                        
+                    except Exception as e:
+                        logging.warning(f"Could not calculate effective DPI for {doc_path}: {e}")
+                        # Fallback: use default DPI if calculation fails
+                        if not dpis:
+                            dpis = [72.0]  # Use 72 DPI as default instead of 300
+                
+                # If still no DPI values, use default
+                if not dpis:
+                    logging.warning(f"No DPI values found for {doc_path}, using default 72 DPI")
+                    dpis = [72.0]
+                    
+            except Exception as dpi_error:
+                logging.error(f"Error in DPI calculation for {doc_path}: {dpi_error}")
+                dpis = [72.0]  # Fallback to default DPI
+
+            agg_dpi = aggregate(dpis, agg_mode)
+            
+            # Áp dụng tolerance từ config với safety checks
+            min_width_threshold = thresh.min_width - (thresh.tolerance_width or 0)
+            min_dpi_threshold = thresh.min_dpi - (thresh.tolerance_dpi or 0)
+            
+            if agg_width < min_width_threshold or agg_dpi < min_dpi_threshold:
+                return False, f"Resolution too low (width: {agg_width}, dpi: {agg_dpi:.2f})"
             return True, ""
 
         elif name == "brightness":
@@ -201,4 +252,5 @@ def check_criteria(doc_path: str, criteria: CriteriaConfig, doc_format: str) -> 
             return True, "Criteria not implemented"
 
     except Exception as e:
+        logging.error(f"Error in {name} criteria for {doc_path}: {str(e)}")
         return False, f"Error in {name}: {str(e)}"

@@ -3,71 +3,76 @@
     {
       "name": "file_integrity",
       "type": "required",
-      "description": "Kiểm tra file có mở được không",
+      "description": "Check if the file can be opened",
       "threshold": null,
       "aggregate_mode": "all_pass"
     },
     {
       "name": "resolution",
       "type": "required",
-      "description": "Độ phân giải tối thiểu",
-      "threshold": { "min_dpi": 300, "min_width": 1000 },
+      "description": "Minimum resolution",
+      "threshold": {
+        "min_dpi": 200,
+        "min_width": 800,
+        "tolerance_dpi": 5,
+        "tolerance_width": 50
+      },
       "aggregate_mode": "avg"
     },
     {
       "name": "brightness",
       "type": "required",
-      "description": "Độ sáng và tương phản",
+      "description": "Brightness and contrast",
       "threshold": { "min": 50, "max": 250, "min_contrast": 20 },
       "aggregate_mode": "avg"
     },
     {
       "name": "blur",
       "type": "required",
-      "description": "Độ mờ/nhòe",
-      "threshold": { "min_variance": 100 },
+      "description": "Blur",
+      "threshold": { "min_variance": 50 },
       "aggregate_mode": "min"
     },
     {
       "name": "skew",
       "type": "recommended",
-      "description": "Góc lệch",
+      "description": "Skew",
       "threshold": { "max_deg": 5 },
       "aggregate_mode": "max"
     },
     {
       "name": "text_density",
       "type": "recommended",
-      "description": "Mật độ văn bản",
-      "threshold": { "min_percent": 10, "max_percent": 80 },
+      "description": "Text density",
+      "threshold": { "min_percent": 5, "max_percent": 80 },
       "aggregate_mode": "avg"
     },
     {
       "name": "noise",
       "type": "recommended",
       "description": "Nhiễu nền",
-      "threshold": { "max_percent": 5 },
+      "threshold": { "max_percent": 10 },
       "aggregate_mode": "max"
     },
     {
       "name": "watermark",
       "type": "warning",
-      "description": "Watermark che lấp",
-      "threshold": { "max_overlap": 5 },
+      "description": "Watermark interference",
+      "threshold": { "max_overlap": 10 },
       "aggregate_mode": "max"
     },
     {
       "name": "compression",
       "type": "warning",
-      "description": "Artifact nén",
-      "threshold": { "min_entropy": 4.0 },
+      "description": "Compression artifact",
+      "threshold": { "min_entropy": 3.0 },
       "aggregate_mode": "min"
     },
     {
       "name": "missing_pages",
       "type": "warning",
-      "description": "Thiếu trang/mất góc",
-      "threshold": { "min_content_ratio": 80 },
+      "description": "Missing pages",
+      "threshold": { "min_content_ratio": 70 },
       "aggregate_mode": "min"
     }
   ]

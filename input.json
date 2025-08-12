@@ -8,96 +8,84 @@
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/1.CV de nghi cung cap TK nhan tien khen thuong.signed.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "217-cp-signed",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/217-cp.signed.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "275-NSG-TCHC",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/275-NSG-TCHC.signed.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "408-tb-signed",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/408-tb.signed.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "4642-BGDDT-HSSV",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/4642-BGDĐT-HSSV- CV 975.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "6d3ece8c-fcc6-4c2c-9fc9-cf20affbcf63",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/6d3ece8c-fcc6-4c2c-9fc9-cf20affbcf63.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "7370-cn-signed",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/7370-cn.signed.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "a27d635b-bfe7-410b-8665-2ba021642df8",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/a27d635b-bfe7-410b-8665-2ba021642df8.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "GPKD-TaoDo",
                 "documentType": "giay_phep_kinh_doanh",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Giấy phép kinh doanh Phòng khám Táo Đỏ.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "image-based",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/image-based.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "text-based",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/text-based.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             },
             {
                 "documentID": "sample-pdf",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/sample-local-pdf.pdf",
-                "requiresOCR": true,
-                "isAccepted": false
+                "requiresOCR": true
             }
         ]
     }

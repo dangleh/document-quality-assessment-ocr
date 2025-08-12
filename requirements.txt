@@ -1,6 +1,21 @@
-pillow
-numpy
-opencv-python
-pytest
-pydantic
-pymupdf
+# Core dependencies
+pillow>=9.0.0
+numpy>=1.21.0
+opencv-python>=4.5.0
+pydantic>=2.0.0
+pymupdf>=1.20.0
+
+# Testing dependencies
+pytest>=6.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.6.0
+pytest-timeout>=2.0.0
+pytest-html>=3.0.0
+
+# Development dependencies
+black>=22.0.0
+flake8>=4.0.0
+mypy>=0.950
+isort>=5.10.0
+
+psutil

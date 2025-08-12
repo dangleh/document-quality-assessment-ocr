@@ -1,0 +1,51 @@
+{
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "file_enabled": true,
+    "console_enabled": true,
+    "max_file_size_mb": 10,
+    "backup_count": 5
+  },
+  "processing": {
+    "max_pages_per_document": 3,
+    "max_concurrent_documents": 5,
+    "timeout_seconds": 300,
+    "memory_limit_mb": 512,
+    "temp_directory": "temp",
+    "cleanup_temp_files": true
+  },
+  "image_processing": {
+    "default_dpi": 72,
+    "max_image_size_mb": 50,
+    "supported_formats": ["pdf", "tiff", "png", "jpg", "jpeg"],
+    "image_quality": 95,
+    "compression_level": 6
+  },
+  "evaluation": {
+    "enable_parallel_processing": false,
+    "batch_size": 100,
+    "retry_failed_evaluations": 3,
+    "save_intermediate_results": true,
+    "evaluation_timeout_seconds": 60
+  },
+  "output": {
+    "include_detailed_metrics": true,
+    "include_image_samples": false,
+    "export_format": "json",
+    "compression_enabled": false,
+    "backup_previous_results": true
+  },
+  "system": {
+    "temp_dir": "temp",
+    "log_dir": "logs",
+    "output_dir": "output",
+    "data_dir": "data",
+    "max_log_files": 100
+  },
+  "notifications": {
+    "enable_email_notifications": false,
+    "enable_slack_notifications": false,
+    "notification_level": "WARNING"
+  }
+}
