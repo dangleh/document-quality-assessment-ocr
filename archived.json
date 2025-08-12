@@ -1,0 +1,169 @@
+[
+    {
+        "customerID": "BATCH-003",
+        "transactionID": "TXN-BATCH-20-DOCS",
+        "documents": [
+            {
+                "documentID": "IMAGE-01",
+                "documentType": "image",
+                "documentFormat": "jpg",
+                "documentPath": "data/docs/image-9.jpg",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "IMAGE-02",
+                "documentType": "image",
+                "documentFormat": "png",
+                "documentPath": "data/docs/01.png",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "UC-1-B-02",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/[UC-1][B-02].pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "CV-khen-thuong",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/1.CV de nghi cung cap TK nhan tien khen thuong.signed.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "217-cp-signed",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/217-cp.signed.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "275-NSG-TCHC",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/275-NSG-TCHC.signed.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "408-tb-signed",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/408-tb.signed.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "4642-BGDDT-HSSV",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/4642-BGDĐT-HSSV- CV 975.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "6d3ece8c-fcc6-4c2c-9fc9-cf20affbcf63",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/6d3ece8c-fcc6-4c2c-9fc9-cf20affbcf63.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "7370-cn-signed",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/7370-cn.signed.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "a27d635b-bfe7-410b-8665-2ba021642df8",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/a27d635b-bfe7-410b-8665-2ba021642df8.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "Automate-release-notes",
+                "documentType": "tai_lieu_hoc",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/Automate release notes with GitHub - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "Configure-github-tags",
+                "documentType": "tai_lieu_hoc",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/Configure GitHub tags to organize repositories - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "File-Guidelines-1217",
+                "documentType": "huong_dan",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/File_Guidelines_1217.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "GPKD-TaoDo",
+                "documentType": "giay_phep_kinh_doanh",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/Giấy phép kinh doanh Phòng khám Táo Đỏ.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "image-based",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/image-based.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "Intro-to-technical-debt",
+                "documentType": "tai_lieu_hoc",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/Introduction to technical debt - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "Nguoi-chuyen-giao-IBM",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/Người chuyển giao Trung tâm IBM.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "Plan-effective-code-reviews",
+                "documentType": "tai_lieu_hoc",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/Plan effective code reviews - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "sample-local-pdf",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/sample-local-pdf.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "scan-to-pdf-instructions",
+                "documentType": "huong_dan",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/scan_to_pdf_instructions.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "text-based",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/text-based.pdf",
+                "requiresOCR": true
+            },
+            {
+                "documentID": "tHDSD-KDCL-UFM",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/HDSD KDCL UFM TT04 2016.pdf",
+                "requiresOCR": true
+            }
+        ]
+    }
+]

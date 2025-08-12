@@ -55,6 +55,8 @@ class Document(BaseModel):
     documentPath: str
     requiresOCR: bool = False
     isAccepted: Optional[bool] = None
+    reasons: Optional[List[str]] = None
+    warnings: Optional[List[str]] = None
 
 class DocumentBatch(BaseModel):
     customerID: str

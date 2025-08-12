@@ -4,10 +4,10 @@
         "transactionID": "TXN-BATCH-20-DOCS",
         "documents": [
             {
-                "documentID": "IMAGE-02",
-                "documentType": "image",
-                "documentFormat": "png",
-                "documentPath": "data/docs/01.png",
+                "documentID": "217-cp-signed",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "data/docs/217-cp.signed.pdf",
                 "requiresOCR": true,
                 "isAccepted": true
             }
