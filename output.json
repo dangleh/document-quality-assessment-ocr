@@ -1,13 +1,13 @@
 [
     {
         "customerID": "BATCH-003",
-        "transactionID": "TXN-BATCH-20-DOCS",
+        "transactionID": "TXN-BATCH-ALL-DOCS",
         "documents": [
             {
-                "documentID": "217-cp-signed",
+                "documentID": "watermark",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
-                "documentPath": "data/docs/217-cp.signed.pdf",
+                "documentPath": "data/docs/watermark_doc.pdf",
                 "requiresOCR": true,
                 "isAccepted": true
             }

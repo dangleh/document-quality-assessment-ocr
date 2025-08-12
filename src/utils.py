@@ -153,28 +153,25 @@ def save_json(data: Any, file_path: str, ensure_ascii: bool = False, indent: int
         raise
 
 # Result logging with structured format
-def log_result(doc_id: str, is_accepted: bool, reasons: list, warnings: list) -> None:
-    """Log evaluation result with structured information"""
+def log_result(doc_id: str, is_accepted: bool, reasons: list, warnings: list):
+    """Log evaluation result, ensuring reasons and warnings are clearly visible."""
     logger = get_logger(__name__)
     
-    if not is_accepted:
-        logger.warning(f"Document {doc_id} REJECTED", extra={
-            'document_id': doc_id,
-            'status': 'rejected',
-            'reasons': reasons,
-            'warnings': warnings
-        })
-    elif warnings:
-        logger.info(f"Document {doc_id} ACCEPTED with warnings", extra={
-            'document_id': doc_id,
-            'status': 'accepted_with_warnings',
-            'warnings': warnings
-        })
+    if is_accepted:
+        if warnings:
+            logger.info(f"Document {doc_id} ACCEPTED with warnings")
+            for warning in warnings:
+                logger.warning(f"  - Warning for {doc_id}: {warning}")
+        else:
+            logger.info(f"Document {doc_id} ACCEPTED")
     else:
-        logger.info(f"Document {doc_id} ACCEPTED", extra={
-            'document_id': doc_id,
-            'status': 'accepted'
-        })
+        logger.warning(f"Document {doc_id} REJECTED")
+        for reason in reasons:
+            logger.warning(f"  - Reason for {doc_id}: {reason}")
+        # Also log any warnings that occurred before rejection
+        if warnings:
+            for warning in warnings:
+                logger.warning(f"  - Warning for {doc_id}: {warning}")
 
 def export_metrics(run_id: str, metrics: dict) -> None:
     """Export metrics to JSON file with error handling"""

@@ -12,7 +12,7 @@
       "type": "required",
       "description": "Minimum resolution",
       "threshold": {
-        "min_dpi": 72,
+        "min_dpi": 50,
         "min_width": 800,
         "tolerance_dpi": 5,
         "tolerance_width": 50

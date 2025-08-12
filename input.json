@@ -1,15 +1,15 @@
 [
   {
-    "customerID": "BATCH-003",
-    "transactionID": "TXN-BATCH-20-DOCS",
-    "documents": [
-        {
-            "documentID": "217-cp-signed",
-            "documentType": "van_ban",
-            "documentFormat": "pdf",
-            "documentPath": "data/docs/217-cp.signed.pdf",
-            "requiresOCR": true
-        }
-    ]
+      "customerID": "BATCH-003",
+      "transactionID": "TXN-BATCH-ALL-DOCS",
+      "documents": [
+          {
+              "documentID": "watermark",
+              "documentType": "van_ban",
+              "documentFormat": "pdf",
+              "documentPath": "data/docs/watermark_doc.pdf",
+              "requiresOCR": true
+          }
+      ]
   }
 ]

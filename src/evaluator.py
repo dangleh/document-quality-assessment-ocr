@@ -55,7 +55,13 @@ def run_pipeline(data: List[dict], timeout_per_doc: int = 60) -> List[dict]:
         validated_data = [DocumentBatch.model_validate(item) for item in data]
         all_docs = {doc.documentID: doc for batch in validated_data for doc in batch.documents}
         
-        metrics = {"total_docs": 0, "rejected": 0, "reasons": {}}
+        metrics = {
+            "total_docs": 0,
+            "accepted_docs": 0,
+            "rejected_docs": 0,
+            "rejection_summary": {},
+            "rejected_documents": []
+        }
         
         with ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
             future_to_doc_id = {
@@ -81,17 +87,32 @@ def run_pipeline(data: List[dict], timeout_per_doc: int = 60) -> List[dict]:
 
                     # Update metrics
                     metrics["total_docs"] += 1
-                    if not is_accepted:
-                        metrics["rejected"] += 1
+                    if is_accepted:
+                        metrics["accepted_docs"] += 1
+                    else:
+                        metrics["rejected_docs"] += 1
+                        metrics["rejected_documents"].append({
+                            "documentID": doc_id,
+                            "reasons": reasons
+                        })
                         for r in reasons:
-                            metrics["reasons"][r] = metrics["reasons"].get(r, 0) + 1
+                            metrics["rejection_summary"][r] = metrics["rejection_summary"].get(r, 0) + 1
                             
                 except Exception as exc:
                     logging.error(f"Document {doc_id} generated a critical exception in the future: {exc}", exc_info=True)
+                    reasons = [f"Critical processing error: {str(exc)}"]
                     doc_obj.isAccepted = False
-                    doc_obj.reasons = [f"Critical processing error: {exc}"]
+                    doc_obj.reasons = reasons
+                    
+                    # Update metrics for critical failure
                     metrics["total_docs"] += 1
-                    metrics["rejected"] += 1
+                    metrics["rejected_docs"] += 1
+                    metrics["rejected_documents"].append({
+                        "documentID": doc_id,
+                        "reasons": reasons
+                    })
+                    for r in reasons:
+                        metrics["rejection_summary"][r] = metrics["rejection_summary"].get(r, 0) + 1
 
         logging.info(f"All documents processed in {time.time() - start_time:.2f} seconds.")
         
