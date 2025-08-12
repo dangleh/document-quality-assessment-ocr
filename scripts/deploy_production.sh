@@ -117,7 +117,7 @@ create_production_config() {
     "cleanup_temp_files": true
   },
   "image_processing": {
-    "default_dpi": 72,
+    "default_dpi": 200,
     "max_image_size_mb": 100,
     "supported_formats": ["pdf", "tiff", "png", "jpg", "jpeg"],
     "image_quality": 90,
