@@ -1,10 +1,23 @@
+# Environments
 .venv
-__pycache__
-*.pyc
-data/
-.pytest_cache
-logs/
-input.json
-output.json
 .env
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Build artifacts
 dist/
+build/
+
+# Data & Temp files
+data/
+temp/
+*.json
+
+# Logs
+logs/
+
+# OS-specific
+.DS_Store

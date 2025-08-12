@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch, MagicMock
 from PIL import Image
 import numpy as np
 
-from src.evaluator import evaluate_document, run_pipeline, Document, DocumentBatch
+from src.evaluator import evaluate_document_worker, run_pipeline, Document, DocumentBatch
 from src.criteria import check_criteria, CriteriaConfig, CriteriaType, Threshold
 
 
@@ -177,7 +177,7 @@ class TestCriteria:
 class TestEvaluator:
     """Test evaluation pipeline"""
     
-    def test_evaluate_document_no_ocr_required(self):
+    def test_evaluate_document_worker_no_ocr_required(self):
         """Test document evaluation when OCR is not required"""
         doc = Document(
             documentID="test123",
@@ -186,13 +186,13 @@ class TestEvaluator:
         )
         
         criteria_list = []
-        result, reasons, warnings = evaluate_document(doc, criteria_list)
+        result, reasons, warnings = evaluate_document_worker(doc, criteria_list, 30)
         
         assert result is True
         assert reasons == []
         assert warnings == []
     
-    def test_evaluate_document_with_required_criteria_fail(self):
+    def test_evaluate_document_worker_with_required_criteria_fail(self):
         """Test document evaluation with failing required criteria"""
         doc = Document(
             documentID="test123",
@@ -210,13 +210,13 @@ class TestEvaluator:
         with patch('src.evaluator.check_criteria') as mock_check:
             mock_check.return_value = (False, "Resolution too low")
             
-            result, reasons, warnings = evaluate_document(doc, [criteria])
+            result, reasons, warnings = evaluate_document_worker(doc, [criteria], 30)
             
             assert result is False
             assert "Resolution too low" in reasons
             assert warnings == []
     
-    def test_evaluate_document_with_recommended_criteria_fail(self):
+    def test_evaluate_document_worker_with_recommended_criteria_fail(self):
         """Test document evaluation with failing recommended criteria"""
         doc = Document(
             documentID="test123",
@@ -241,13 +241,13 @@ class TestEvaluator:
         with patch('src.evaluator.check_criteria') as mock_check:
             mock_check.side_effect = [(True, ""), (False, "Brightness too low")]
             
-            result, reasons, warnings = evaluate_document(doc, [required_criteria, recommended_criteria])
+            result, reasons, warnings = evaluate_document_worker(doc, [required_criteria, recommended_criteria], 30)
             
             assert result is True  # Should still pass because required criteria passed
             assert "Brightness too low" in reasons
             assert warnings == []
     
-    def test_evaluate_document_with_warning_criteria_fail(self):
+    def test_evaluate_document_worker_with_warning_criteria_fail(self):
         """Test document evaluation with failing warning criteria"""
         doc = Document(
             documentID="test123",
@@ -272,7 +272,7 @@ class TestEvaluator:
         with patch('src.evaluator.check_criteria') as mock_check:
             mock_check.side_effect = [(True, ""), (False, "Watermark detected")]
             
-            result, reasons, warnings = evaluate_document(doc, [required_criteria, warning_criteria])
+            result, reasons, warnings = evaluate_document_worker(doc, [required_criteria, warning_criteria], 30)
             
             assert result is True  # Should pass because only warning criteria failed
             assert reasons == []
@@ -297,16 +297,36 @@ class TestPipeline:
                 ]
             }
         ]
+
+        # This helper class simulates a future that holds an immediate result.
+        class MockFuture:
+            def __init__(self, result_val):
+                self._result = result_val
+            def result(self):
+                return self._result
+
+        # This helper class simulates an executor that runs tasks sequentially.
+        class SequentialExecutor:
+            def __init__(self, *args, **kwargs):
+                pass
+            def submit(self, func, *args, **kwargs):
+                return MockFuture(func(*args, **kwargs))
+            def __enter__(self):
+                return self
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                pass
         
-        with patch('src.evaluator.check_criteria') as mock_check:
-            mock_check.return_value = (True, "")
-            
-            result = run_pipeline(input_data)
-            
-            assert len(result) == 1
-            assert result[0]['customerID'] == "customer123"
-            assert len(result[0]['documents']) == 1
-            assert result[0]['documents'][0]['isAccepted'] is True
+        # Patch the executor to run sequentially and allow mocks to work
+        with patch('concurrent.futures.ProcessPoolExecutor', SequentialExecutor):
+            with patch('src.evaluator.check_criteria') as mock_check:
+                mock_check.return_value = (True, "")
+                
+                result = run_pipeline(input_data)
+                
+                assert len(result) == 1
+                assert result[0]['customerID'] == "customer123"
+                assert len(result[0]['documents']) == 1
+                assert result[0]['documents'][0]['isAccepted'] is True
     
     def test_run_pipeline_invalid_data(self):
         """Test running pipeline with invalid data"""

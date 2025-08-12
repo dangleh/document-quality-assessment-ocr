@@ -5,9 +5,18 @@ from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock, mock_open
 from PIL import Image
 import fitz
+import io
+import base64
 
 from src.handlers.pdf_handler import get_images_from_pdf
 from src.handlers.tiff_handler import get_images_from_tiff
+
+# Helper to create valid dummy image bytes
+def _get_dummy_png_bytes() -> bytes:
+    """Returns bytes for a valid 1x1 black PNG."""
+    # A valid 1x1 black PNG, base64 encoded
+    png_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+    return base64.b64decode(png_b64)
 
 
 class TestPDFHandler:
@@ -31,7 +40,7 @@ class TestPDFHandler:
         mock_page.rect = mock_rect
         
         mock_page.get_pixmap.return_value = mock_pixmap
-        mock_pixmap.tobytes.return_value = b"fake_png_data"
+        mock_pixmap.tobytes.return_value = _get_dummy_png_bytes()
         
         # Mock PIL Image
         mock_image = Image.new('L', (100, 100))
@@ -51,14 +60,22 @@ class TestPDFHandler:
     def test_get_images_from_pdf_with_max_pages_limit(self):
         """Test PDF processing respects max_pages limit"""
         mock_doc = Mock(spec=['__len__', 'load_page', 'close'])
+        mock_page = Mock(spec=['get_pixmap', 'rect'])
+        mock_pixmap = Mock(spec=['tobytes'])
         mock_doc.__len__ = MagicMock(return_value=10)  # PDF has 10 pages
-        
+        mock_doc.load_page.return_value = mock_page
+        mock_page.get_pixmap.return_value = mock_pixmap
+        mock_pixmap.tobytes.return_value = _get_dummy_png_bytes()
+        mock_page.rect = Mock(width=100, height=100)
+
+
         with patch('fitz.open', return_value=mock_doc):
-            result = get_images_from_pdf("/fake/path.pdf", max_pages=3)
+            with patch('PIL.Image.open', return_value=Image.new('L', (1,1))):
+                result = get_images_from_pdf("/fake/path.pdf", max_pages=3)
             
-            # Should only process 3 pages
-            assert mock_doc.load_page.call_count == 3
-            mock_doc.close.assert_called_once()
+                # Should only process 3 pages
+                assert mock_doc.load_page.call_count == 3
+                mock_doc.close.assert_called_once()
     
     def test_get_images_from_pdf_file_not_found(self):
         """Test PDF handler with non-existent file"""
@@ -84,32 +101,31 @@ class TestPDFHandler:
             mock_doc.close.assert_called_once()
     
     def test_get_images_from_pdf_page_processing_error(self):
-        """Test PDF handler when page processing fails - should continue and return empty list"""
+        """Test PDF handler when page processing fails"""
         mock_doc = Mock(spec=['__len__', 'load_page', 'close'])
         mock_doc.__len__ = MagicMock(return_value=1)
         mock_doc.load_page.side_effect = Exception("Page processing failed")
         
         with patch('fitz.open', return_value=mock_doc):
-            result = get_images_from_pdf("/problematic/file.pdf")
-            # Should return empty list when page processing fails
-            assert len(result) == 0
-            # Document should still be closed
+            with pytest.raises(ValueError, match="Failed to extract even the first page"):
+                get_images_from_pdf("/problematic/file.pdf")
             mock_doc.close.assert_called_once()
+
     
     def test_get_images_from_pdf_pixmap_error(self):
-        """Test PDF handler when pixmap creation fails - should continue and return empty list"""
+        """Test PDF handler when pixmap creation fails"""
         mock_doc = Mock(spec=['__len__', 'load_page', 'close'])
-        mock_page = Mock(spec=['get_pixmap'])
+        mock_page = Mock(spec=['get_pixmap', 'rect'])
         mock_doc.__len__ = MagicMock(return_value=1)
         mock_doc.load_page.return_value = mock_page
         mock_page.get_pixmap.side_effect = Exception("Pixmap creation failed")
-        
+        mock_page.rect = Mock(width=100, height=100)
+
         with patch('fitz.open', return_value=mock_doc):
-            result = get_images_from_pdf("/problematic/file.pdf")
-            # Should return empty list when pixmap creation fails
-            assert len(result) == 0
-            # Document should still be closed
+            with pytest.raises(ValueError, match="Failed to extract even the first page"):
+                get_images_from_pdf("/problematic/file.pdf")
             mock_doc.close.assert_called_once()
+
     
     def test_get_images_from_pdf_dpi_parameter(self):
         """Test PDF handler uses correct DPI parameter"""
@@ -126,7 +142,7 @@ class TestPDFHandler:
         mock_doc.__len__ = MagicMock(return_value=1)
         mock_doc.load_page.return_value = mock_page
         mock_page.get_pixmap.return_value = mock_pixmap
-        mock_pixmap.tobytes.return_value = b"fake_png_data"
+        mock_pixmap.tobytes.return_value = _get_dummy_png_bytes()
         
         mock_image = Image.new('L', (100, 100))
         
@@ -241,7 +257,7 @@ class TestHandlerIntegration:
         mock_doc.__len__ = MagicMock(return_value=1)
         mock_doc.load_page.return_value = mock_page
         mock_page.get_pixmap.return_value = mock_pixmap
-        mock_pixmap.tobytes.return_value = b"fake_png_data"
+        mock_pixmap.tobytes.return_value = _get_dummy_png_bytes()
         
         # Create a realistic mock image
         mock_image = Image.new('L', (800, 600))
@@ -281,15 +297,14 @@ class TestHandlerErrorRecovery:
     """Test error recovery mechanisms in handlers"""
     
     def test_pdf_handler_cleanup_on_error(self):
-        """Test PDF handler properly cleans up resources on error - should continue and return empty list"""
+        """Test PDF handler properly cleans up resources on error"""
         mock_doc = Mock(spec=['__len__', 'load_page', 'close'])
         mock_doc.__len__ = MagicMock(return_value=1)
         mock_doc.load_page.side_effect = Exception("Processing error")
         
         with patch('fitz.open', return_value=mock_doc):
-            result = get_images_from_pdf("/problematic/file.pdf")
-            # Should return empty list when page processing fails
-            assert len(result) == 0
+            with pytest.raises(ValueError, match="Failed to extract even the first page"):
+                get_images_from_pdf("/problematic/file.pdf")
             # Ensure document is closed even on error
             mock_doc.close.assert_called_once()
     
