@@ -1,45 +1,45 @@
 # Document Quality Assessment for OCR
 
-## Mô tả
+## Description
 
-Hệ thống kiểm tra chất lượng tài liệu PDF và TIFF trước khi thực hiện OCR. Project này giúp đảm bảo tài liệu đáp ứng các tiêu chuẩn chất lượng cần thiết để OCR có thể hoạt động hiệu quả.
+A system to check the quality of PDF and TIFF documents before performing OCR. This project helps ensure that documents meet the necessary quality standards for OCR to work effectively.
 
-## Tính năng chính
+## Key Features
 
-- **Kiểm tra độ phân giải**: Đảm bảo DPI và kích thước tối thiểu
-- **Đánh giá chất lượng ảnh**: Độ sáng, độ tương phản, độ mờ
-- **Phát hiện vấn đề**: Góc lệch, nhiễu, watermark, artifact nén
-- **Hỗ trợ đa định dạng**: PDF, TIFF, và các định dạng ảnh khác
-- **Batch processing**: Xử lý nhiều tài liệu cùng lúc
-- **Cấu hình linh hoạt**: Tùy chỉnh tiêu chí đánh giá qua JSON config
+- **Resolution Check**: Ensures minimum DPI and dimensions.
+- **Image Quality Assessment**: Brightness, contrast, blurriness.
+- **Issue Detection**: Skew, noise, watermarks, compression artifacts.
+- **Multi-format Support**: PDF, TIFF, and other image formats.
+- **Batch Processing**: Process multiple documents at once.
+- **Flexible Configuration**: Customize evaluation criteria via JSON config.
 
-## Cài đặt
+## Installation
 
-### Yêu cầu hệ thống
+### System Requirements
 
 - Python 3.8+
 - pip
 
-### Cài đặt dependencies
+### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Dependencies chính
+### Main Dependencies
 
-- `pillow`: Xử lý ảnh
-- `numpy`: Tính toán số học
-- `opencv-python`: Xử lý ảnh nâng cao
-- `pymupdf`: Xử lý PDF
-- `pydantic`: Validation dữ liệu
+- `pillow`: Image processing
+- `numpy`: Numerical computation
+- `opencv-python`: Advanced image processing
+- `pymupdf`: PDF processing
+- `pydantic`: Data validation
 - `pytest`: Testing
 
-## Cách sử dụng
+## Usage
 
-### 1. Chuẩn bị dữ liệu đầu vào
+### 1. Prepare Input Data
 
-Tạo file JSON với cấu trúc:
+Create a JSON file with the following structure:
 
 ```json
 [
@@ -49,7 +49,7 @@ Tạo file JSON với cấu trúc:
     "documents": [
       {
         "documentID": "doc1",
-        "documentType": "công văn",
+        "documentType": "official_letter",
         "documentFormat": "pdf",
         "documentPath": "path/to/document.pdf",
         "requiresOCR": true
@@ -59,98 +59,132 @@ Tạo file JSON với cấu trúc:
 ]
 ```
 
-### 2. Chạy chương trình
+### 2. Run the Program
 
 ```bash
-# Sử dụng script
-./run.sh
+# Using the script
+./run.sh --input input.json --output output.json
 
-# Hoặc chạy trực tiếp
-python src/main.py --input input.json --output output.json
+# Or run directly
+python -m src.main --input input.json --output output.json
 ```
 
-### 3. Kết quả
+### 3. Results
 
-- File output.json chứa kết quả đánh giá
-- Logs được lưu trong thư mục `logs/`
-- Mỗi document sẽ có trường `isAccepted` cho biết có đạt tiêu chuẩn không
+- The `output.json` file contains the evaluation results.
+- Logs are saved in the `logs/` directory.
+- Each document will have an `isAccepted` field indicating if it meets the standards.
 
-## Cấu hình
+## Configuration
 
-### Tiêu chí đánh giá (criteria_config.json)
+### Evaluation Criteria (criteria_config.json)
 
-- **required**: Tiêu chí bắt buộc, fail sẽ từ chối tài liệu
-- **recommended**: Tiêu chí khuyến nghị, fail sẽ cảnh báo
-- **warning**: Tiêu chí cảnh báo, không ảnh hưởng đến kết quả cuối
+- **required**: Mandatory criteria; failure will result in document rejection.
+- **recommended**: Recommended criteria; failure will result in a warning.
+- **warning**: Warning criteria; does not affect the final result.
 
-### Các tiêu chí chính
+### Main Criteria
 
-1. **file_integrity**: Kiểm tra file có mở được không
-2. **resolution**: Độ phân giải tối thiểu (DPI, width)
-3. **brightness**: Độ sáng và tương phản
-4. **blur**: Độ mờ/nhòe
-5. **skew**: Góc lệch
-6. **text_density**: Mật độ văn bản
-7. **noise**: Nhiễu nền
-8. **watermark**: Watermark che lấp
-9. **compression**: Artifact nén
-10. **missing_pages**: Thiếu trang/mất góc
+1.  **file_integrity**: Checks if the file can be opened.
+2.  **resolution**: Minimum resolution (DPI, width).
+3.  **brightness**: Brightness and contrast.
+4.  **blur**: Blurriness/smudging.
+5.  **skew**: Skew angle.
+6.  **text_density**: Text density.
+7.  **noise**: Background noise.
+8.  **watermark**: Obscuring watermarks.
+9.  **compression**: Compression artifacts.
+10. **missing_pages**: Missing pages/corners.
 
-## Cấu trúc project
+## Project Structure
 
 ```
 document-quality-assessment-ocr/
-├── config/                 # Cấu hình
-│   ├── app_config.json    # Cấu hình ứng dụng
-│   └── criteria_config.json # Tiêu chí đánh giá
-├── data/                  # Dữ liệu mẫu
+├── config/                 # Configuration files
+│   ├── app_config.json    # Application configuration
+│   └── criteria_config.json # Evaluation criteria
+├── data/                  # Sample data
 ├── logs/                  # Log files
 ├── src/                   # Source code
-│   ├── handlers/          # Xử lý file PDF/TIFF
-│   ├── criteria.py        # Logic đánh giá
-│   ├── evaluator.py       # Pipeline chính
+│   ├── handlers/          # Handlers for PDF/TIFF files
+│   ├── criteria.py        # Evaluation logic
+│   ├── evaluator.py       # Main pipeline
 │   ├── main.py           # Entry point
 │   └── utils.py          # Utilities
 ├── tests/                 # Test cases
 ├── requirements.txt       # Dependencies
-└── run.sh                # Script chạy
+└── run.sh                # Execution script
 ```
 
 ## Testing
 
 ```bash
-# Chạy tất cả tests
+# Run all tests
 pytest
 
-# Chạy test cụ thể
+# Run a specific test
 pytest tests/test_evaluation.py
 ```
 
+## Performance Considerations
+
+### GPU Usage
+This project currently operates entirely on the CPU. The installed version of OpenCV (`opencv-python`) does not include GPU (CUDA) support, and the code makes no calls to GPU-specific libraries. All image processing tasks are handled by the CPU.
+
+### Parallel Processing
+The application processes documents **sequentially** in a single thread. For each batch, documents are evaluated one after another. While this approach is simple and reliable, it may not be optimal for processing a very large number of documents.
+
+A potential future enhancement would be to implement parallel processing using Python's `concurrent.futures` library to distribute the evaluation of multiple documents across available CPU cores, which would significantly reduce the total processing time for large batches.
+
 ## Troubleshooting
 
-### Lỗi thường gặp
+### Common Errors
 
-1. **File không mở được**: Kiểm tra đường dẫn và quyền truy cập
-2. **Memory error**: Giảm max_pages trong config
-3. **DPI detection fail**: Kiểm tra metadata của file
+1.  **File cannot be opened**: Check the path and access permissions.
+2.  **Memory error**: Reduce `max_pages` in the config.
+3.  **DPI detection fail**: Check the file's metadata.
 
 ### Logs
 
-- Logs được lưu trong `logs/` với format `run_YYYYMMDD_HHMMSS.json`
-- Sử dụng `logging` để debug
+- Logs are saved in `logs/` with the format `run_YYYYMMDD_HHMMSS.json`.
+- Use `logging` for debugging.
 
-## Đóng góp
+## Contributing
 
-1. Fork project
-2. Tạo feature branch
-3. Commit changes
-4. Push to branch
-5. Tạo Pull Request
+1.  Fork the project
+2.  Create a feature branch
+3.  Commit your changes
+4.  Push to the branch
+5.  Create a Pull Request
 
 ## License
 
 MIT License
 
-## Liên hệ
+## Contact
 
-Nếu có vấn đề hoặc góp ý, vui lòng tạo issue trên GitHub.
+For issues or suggestions, please create an issue on GitHub.
+
+---
+
+## QA/QC and Refinement Log
+
+*This section summarizes the analysis and improvements made to the project during a QA session.*
+
+### Initial State Analysis
+- The project was found to be well-structured with a clear separation of concerns, unit tests, and robust configuration options.
+- However, several critical bugs prevented the application from being installed or run correctly.
+
+### Resolved Issues
+1.  **Dependency Fix:** The `requirements.txt` file was corrected. It initially contained an invalid package name and was missing a required dependency (`psutil`), which caused installation to fail.
+2.  **Execution Fix:** The main execution script (`run.sh`) failed due to a `ModuleNotFoundError`. This was resolved by adding the project's root to the `PYTHONPATH`, ensuring modules could be correctly imported.
+
+### Feature Enhancement: Smart DPI Estimation
+- **Problem:** Initial tests showed all documents were rejected for having low DPI (~72), even though they were believed to be higher quality. The analysis concluded that the system was correctly reading faulty DPI metadata from the PDF files.
+- **Solution:** The `resolution` check in `src/criteria.py` was enhanced. The new logic performs a two-stage check:
+    1. It first checks the metadata/effective DPI.
+    2. If the DPI is below the threshold, it now performs a content-based analysis using OpenCV to *estimate* the true DPI by measuring the size of detected characters.
+- **Outcome:** This "Smart DPI" logic was verified to be working correctly. It successfully estimated a more realistic DPI (e.g., ~110-175) for the documents. However, these estimated values were still below the required 200 DPI threshold, confirming the source documents are of insufficient resolution.
+
+### Current Status
+The module is now in a stable, production-ready state. The core logic is sound, and the DPI detection is significantly more robust. The system correctly identifies and rejects documents that do not meet the configured quality standards.

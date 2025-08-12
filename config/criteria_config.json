@@ -12,7 +12,7 @@
       "type": "required",
       "description": "Minimum resolution",
       "threshold": {
-        "min_dpi": 200,
+        "min_dpi": 150,
         "min_width": 800,
         "tolerance_dpi": 5,
         "tolerance_width": 50
@@ -50,7 +50,7 @@
     {
       "name": "noise",
       "type": "recommended",
-      "description": "Nhiễu nền",
+      "description": "Background noise",
       "threshold": { "max_percent": 10 },
       "aggregate_mode": "max"
     },

@@ -132,7 +132,7 @@ def mock_app_config():
             "memory_limit_mb": 512
         },
         "image_processing": {
-            "default_dpi": 300,
+            "default_dpi": 200,
             "max_image_size_mb": 25,
             "supported_formats": ["pdf", "tiff", "png"]
         }

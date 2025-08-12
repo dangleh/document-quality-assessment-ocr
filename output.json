@@ -1,8 +1,16 @@
 [
     {
-        "customerID": "BATCH-002",
-        "transactionID": "TXN-BATCH-11-DOCS",
+        "customerID": "BATCH-003",
+        "transactionID": "TXN-BATCH-20-DOCS",
         "documents": [
+            {
+                "documentID": "UC-1-B-02",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/[UC-1][B-02].pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
             {
                 "documentID": "CV-khen-thuong",
                 "documentType": "van_ban",
@@ -68,6 +76,30 @@
                 "isAccepted": false
             },
             {
+                "documentID": "Automate-release-notes",
+                "documentType": "tai_lieu_hoc",
+                "documentFormat": "pdf",
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Automate release notes with GitHub - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
+                "documentID": "Configure-github-tags",
+                "documentType": "tai_lieu_hoc",
+                "documentFormat": "pdf",
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Configure GitHub tags to organize repositories - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
+                "documentID": "File-Guidelines-1217",
+                "documentType": "huong_dan",
+                "documentFormat": "pdf",
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/File_Guidelines_1217.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
                 "documentID": "GPKD-TaoDo",
                 "documentType": "giay_phep_kinh_doanh",
                 "documentFormat": "pdf",
@@ -84,18 +116,50 @@
                 "isAccepted": false
             },
             {
-                "documentID": "text-based",
-                "documentType": "van_ban",
+                "documentID": "Intro-to-technical-debt",
+                "documentType": "tai_lieu_hoc",
                 "documentFormat": "pdf",
-                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/text-based.pdf",
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Introduction to technical debt - Training _ Microsoft Learn.pdf",
                 "requiresOCR": true,
                 "isAccepted": false
             },
             {
-                "documentID": "sample-pdf",
+                "documentID": "Nguoi-chuyen-giao-IBM",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Người chuyển giao Trung tâm IBM.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
+                "documentID": "Plan-effective-code-reviews",
+                "documentType": "tai_lieu_hoc",
+                "documentFormat": "pdf",
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Plan effective code reviews - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
+                "documentID": "sample-local-pdf",
                 "documentType": "van_ban",
                 "documentFormat": "pdf",
                 "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/sample-local-pdf.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
+                "documentID": "scan-to-pdf-instructions",
+                "documentType": "huong_dan",
+                "documentFormat": "pdf",
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/scan_to_pdf_instructions.pdf",
+                "requiresOCR": true,
+                "isAccepted": false
+            },
+            {
+                "documentID": "text-based",
+                "documentType": "van_ban",
+                "documentFormat": "pdf",
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/text-based.pdf",
                 "requiresOCR": true,
                 "isAccepted": false
             }

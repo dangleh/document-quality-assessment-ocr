@@ -2,6 +2,7 @@ import os
 import json
 import statistics
 import numpy as np
+import cv2
 from PIL import Image, ImageStat, ImageFilter, ImageChops
 from typing import List, Tuple
 import fitz
@@ -29,16 +30,57 @@ def _get_images_from_path(doc_path: str, doc_format: str, max_pages: int = 5) ->
         elif format_lower == 'tiff':
             return get_images_from_tiff(doc_path)
         else:
-            # Default cho PNG/JPG/etc.
+            # Default for PNG/JPG/etc.
             return [Image.open(doc_path).convert('L')]
     except Exception as e:
         logging.error(f"Error extracting images from {doc_path}: {e}")
         raise ValueError(f"Failed to extract images from {doc_path}: {str(e)}")
-    
+
+def estimate_dpi_from_image(img: Image.Image, expected_char_height_mm: float = 2.5) -> float:
+    """
+    Estimates the DPI of an image by analyzing the height of its characters.
+    Assumes the average height of a capital letter is ~2.5mm (equivalent to ~10pt font).
+    """
+    try:
+        # Convert to grayscale and process
+        cv_img = np.array(img.convert('L'))
+        
+        # Binarize the image to separate text from background
+        _, binary_img = cv2.threshold(cv_img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        
+        # Find contours
+        contours, _ = cv2.findContours(binary_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        # Filter contours to find character-like shapes
+        possible_char_heights = []
+        for cnt in contours:
+            x, y, w, h = cv2.boundingRect(cnt)
+            if 10 < h < 100 and 0.1 < (w / h) < 1.5:
+                possible_char_heights.append(h)
+        
+        if not possible_char_heights:
+            logging.warning("Could not find any potential characters to estimate DPI.")
+            return 0.0
+
+        # Use the median value to remove outliers
+        median_pixel_height = statistics.median(possible_char_heights)
+        
+        # Convert physical height from mm to inches
+        expected_char_height_inches = expected_char_height_mm / 25.4
+        
+        # Estimate DPI
+        estimated_dpi = median_pixel_height / expected_char_height_inches
+        logging.info(f"Estimated DPI based on character height: {estimated_dpi:.2f}")
+        return estimated_dpi
+        
+    except Exception as e:
+        logging.error(f"Error during DPI estimation from image content: {e}")
+        return 0.0
+
 def calculate_skew(img: Image.Image) -> float:
-    """Ước lượng góc lệch đơn giản bằng projection profile."""
+    """Estimate skew angle simply using projection profile."""
     np_img = np.array(img)
-    angles = np.arange(-5, 6)  #Giới hạn để nhanh
+    angles = np.arange(-5, 6)  # Limit for speed
     scores = []
     for angle in angles:
         rotated = Image.fromarray(np_img).rotate(angle, expand=True, fillcolor=255)
@@ -48,14 +90,14 @@ def calculate_skew(img: Image.Image) -> float:
     return best_angle
 
 def detect_overlap(img: Image.Image) -> float:
-    """Placeholder detect watermark bằng autocorrelation (tỷ lệ % overlap)."""
+    """Placeholder for watermark detection using autocorrelation (% overlap)."""
     np_img = np.array(img)
     autocorr = np.correlate(np_img.flatten(), np_img.flatten(), mode='same')
     overlap_ratio = (np.max(autocorr) - np.mean(autocorr)) / np.max(autocorr) * 100 # Simple heuristic
     return overlap_ratio if overlap_ratio > 0 else 0
 
 def calculate_content_ratio(img: Image.Image) -> float:
-    """Tính tỷ lệ vùng nội dung (non-white pixels)."""
+    """Calculate the content area ratio (non-white pixels)."""
     bw = img.point(lambda x: 0 if x < 200 else 255, '1') # Threshold white
     np_bw = np.array(bw)
     content_pixels = np.sum(np_bw == 0)
@@ -68,9 +110,7 @@ def check_criteria(doc_path: str, criteria: CriteriaConfig, doc_format: str) -> 
     agg_mode = criteria.aggregate_mode
     
     try:
-        # Add timeout protection and better error handling
         if doc_format is None:
-            # Try to infer format from file extension
             import os
             file_ext = os.path.splitext(doc_path)[1].lower()
             if file_ext == '.pdf':
@@ -87,89 +127,54 @@ def check_criteria(doc_path: str, criteria: CriteriaConfig, doc_format: str) -> 
         if name == "file_integrity":
             return True, "" 
 
-        # Helper để aggregate metrics qua pages
         def aggregate(values: List[float], mode: str = "min") -> float:
-            if not values:
-                return 0
-            if mode == "min":
-                return min(values)
-            elif mode == "max":
-                return max(values)
-            elif mode == "avg":
-                return statistics.mean(values)
-            elif mode == "all_pass":
-                return all(v for v in values)
-            return min(values)  # Default
+            if not values: return 0
+            if mode == "min": return min(values)
+            elif mode == "max": return max(values)
+            elif mode == "avg": return statistics.mean(values)
+            elif mode == "all_pass": return all(v for v in values)
+            return min(values)
 
         if name == "resolution":
             widths = [img.size[0] for img in images]
             agg_width = aggregate(widths, agg_mode)
-            
-            # Improved DPI detection with timeout protection
             dpis = []
             try:
-                # First, try to get DPI from image metadata (works for TIFF, PNG, etc.)
                 for img in images:
                     if 'dpi' in img.info:
                         dpi = img.info['dpi']
-                        if isinstance(dpi, tuple) and len(dpi) > 0:
-                            dpis.append(float(dpi[0]))
-                        elif isinstance(dpi, (int, float)):
-                            dpis.append(float(dpi))
+                        if isinstance(dpi, tuple) and len(dpi) > 0: dpis.append(float(dpi[0]))
+                        elif isinstance(dpi, (int, float)): dpis.append(float(dpi))
 
-                # If metadata is missing (e.g., for some PDFs), calculate effective DPI
                 if not dpis and doc_format.lower() == 'pdf':
                     logging.debug("DPI not in metadata, calculating effective DPI for PDF.")
-                    try:
-                        doc = fitz.open(doc_path)
-                        num_pages_to_check = min(len(images), len(doc), 5)  # Limit to 5 pages max
-                        
-                        for i in range(num_pages_to_check):
-                            try:
-                                page = doc.load_page(i)
-                                pixel_width = images[i].size[0]
-                                physical_width_inches = page.rect.width / 72
-                                
-                                if physical_width_inches > 0:
-                                    effective_dpi = pixel_width / physical_width_inches
-                                    dpis.append(effective_dpi)
-                                    logging.debug(f"Page {i+1} calculated effective DPI: {effective_dpi:.2f}")
-                                
-                                # Add safety check to prevent infinite loops
-                                if len(dpis) >= 10:  # Max 10 DPI calculations
-                                    logging.warning(f"Reached max DPI calculations limit for {doc_path}")
-                                    break
-                                    
-                            except Exception as page_error:
-                                logging.warning(f"Error processing page {i+1}: {page_error}")
-                                continue
-                                
-                        doc.close()
-                        
-                    except Exception as e:
-                        logging.warning(f"Could not calculate effective DPI for {doc_path}: {e}")
-                        # Fallback: use default DPI if calculation fails
-                        if not dpis:
-                            dpis = [72.0]  # Use 72 DPI as default instead of 300
-                
-                # If still no DPI values, use default
-                if not dpis:
-                    logging.warning(f"No DPI values found for {doc_path}, using default 72 DPI")
-                    dpis = [72.0]
-                    
+                    with fitz.open(doc_path) as doc:
+                        for i, page in enumerate(doc):
+                            if i >= len(images): break
+                            pixel_width = images[i].size[0]
+                            physical_width_inches = page.rect.width / 72
+                            if physical_width_inches > 0:
+                                dpis.append(pixel_width / physical_width_inches)
+                if not dpis: dpis = [72.0]
             except Exception as dpi_error:
                 logging.error(f"Error in DPI calculation for {doc_path}: {dpi_error}")
-                dpis = [72.0]  # Fallback to default DPI
+                dpis = [72.0]
 
             agg_dpi = aggregate(dpis, agg_mode)
-            
-            # Áp dụng tolerance từ config với safety checks
             min_width_threshold = thresh.min_width - (thresh.tolerance_width or 0)
             min_dpi_threshold = thresh.min_dpi - (thresh.tolerance_dpi or 0)
-            
-            if agg_width < min_width_threshold or agg_dpi < min_dpi_threshold:
-                return False, f"Resolution too low (width: {agg_width}, dpi: {agg_dpi:.2f})"
-            return True, ""
+
+            # --- NEW LOGIC --- 
+            if agg_width >= min_width_threshold and agg_dpi >= min_dpi_threshold:
+                return True, ""
+            else:
+                logging.warning(f"Metadata/Effective DPI is too low ({agg_dpi:.2f}). Attempting smart DPI estimation.")
+                estimated_dpi = estimate_dpi_from_image(images[0])
+                if estimated_dpi >= min_dpi_threshold:
+                    logging.info(f"Smart DPI estimation passed ({estimated_dpi:.2f}). Overriding low metadata DPI.")
+                    return True, ""
+                else:
+                    return False, f"Resolution too low (metadata_dpi: {agg_dpi:.2f}, estimated_dpi: {estimated_dpi:.2f})"
 
         elif name == "brightness":
             brightnesses = [ImageStat.Stat(img).mean[0] for img in images]
@@ -254,3 +259,4 @@ def check_criteria(doc_path: str, criteria: CriteriaConfig, doc_format: str) -> 
     except Exception as e:
         logging.error(f"Error in {name} criteria for {doc_path}: {str(e)}")
         return False, f"Error in {name}: {str(e)}"
+
