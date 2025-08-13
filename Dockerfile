@@ -39,8 +39,8 @@ RUN mkdir -p logs output temp data
 # Set permissions
 RUN chmod +x run.sh
 
-# Expose port (if needed for future web interface)
+# Expose port for the API server
 EXPOSE 8000
 
-# Default command
-CMD ["python", "src/main.py", "--help"]
+# Default command to run the API server
+CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8000"]

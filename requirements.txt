@@ -4,6 +4,12 @@ numpy>=1.21.0
 opencv-python>=4.5.0
 pydantic>=2.0.0
 pymupdf>=1.20.0
+psutil
+
+# API dependencies
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
+httpx>=0.23.0
 
 # Testing dependencies
 pytest>=6.0.0
@@ -17,5 +23,3 @@ black>=22.0.0
 flake8>=4.0.0
 mypy>=0.950
 isort>=5.10.0
-
-psutil

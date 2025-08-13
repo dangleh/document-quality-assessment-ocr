@@ -1,9 +1,11 @@
 version: '3.8'
 
 services:
-  document-quality-assessment:
+  api:
     build: .
-    container_name: doc-quality-ocr
+    container_name: doc-quality-ocr-api
+    ports:
+      - "8000:8000" # Map host port 8000 to container port 8000
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
@@ -13,7 +15,7 @@ services:
       - PYTHONPATH=/app
       - LOG_LEVEL=INFO
     working_dir: /app
-    command: ["python", "src/main.py", "--help"]
+    # The CMD from the Dockerfile will be used here to start the server
     
   # Development service with hot reload
   dev:
