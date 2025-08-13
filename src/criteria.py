@@ -151,6 +151,18 @@ def check_criteria(doc_path: str, criteria: CriteriaConfig, doc_format: str) -> 
             if aggregate(overlaps, "max") > thresh.max_overlap:
                 result, reason = False, f"Watermark interference too high"
         
+        elif name == "text_density":
+            content_ratios = [calculate_content_ratio(img) for img in images]
+            agg_ratio = aggregate(content_ratios, criteria.aggregate_mode)
+            if not (thresh.min_percent <= agg_ratio <= thresh.max_percent):
+                result, reason = False, f"Text density out of range ({agg_ratio:.2f}%)"
+        
+        elif name == "missing_pages":
+            content_ratios = [calculate_content_ratio(img) for img in images]
+            # A page is considered missing if its content ratio is below the threshold
+            if aggregate(content_ratios, "min") < thresh.min_content_ratio:
+                result, reason = False, f"Page may be missing or blank (content ratio: {aggregate(content_ratios, 'min'):.2f}%)"
+        
         # Other criteria would follow the same pattern...
         
         logging.debug(f"Finished criteria check: {name} in {time.time() - start_time:.4f}s. Result: {'Pass' if result else 'Fail'}")

@@ -291,7 +291,7 @@ class TestPipeline:
                 "documents": [
                     {
                         "documentID": "doc1",
-                        "documentPath": "/path/to/doc1.pdf",
+                        "documentPath": "data/docs/watermark_doc.pdf",
                         "requiresOCR": True
                     }
                 ]
@@ -318,8 +318,12 @@ class TestPipeline:
         
         # Patch the executor to run sequentially and allow mocks to work
         with patch('concurrent.futures.ProcessPoolExecutor', SequentialExecutor):
-            with patch('src.evaluator.check_criteria') as mock_check:
-                mock_check.return_value = (True, "")
+            # Patch the low-level image extraction function to prevent file IO errors
+            with patch('src.handlers.pdf_handler.get_images_from_pdf') as mock_get_images:
+                # Return a dummy image that will pass all checks
+                mock_image = Image.new('L', (2000, 3000), color=128)
+                mock_image.info = {'dpi': (300, 300)}
+                mock_get_images.return_value = [mock_image]
                 
                 result = run_pipeline(input_data)
                 

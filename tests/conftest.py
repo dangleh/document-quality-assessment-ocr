@@ -84,7 +84,7 @@ def sample_batch_data():
                 "documentID": "doc1",
                 "documentType": "invoice",
                 "documentFormat": "pdf",
-                "documentPath": "/path/to/doc1.pdf",
+                "documentPath": "data/docs/watermark_doc.pdf",
                 "requiresOCR": True
             },
             {
