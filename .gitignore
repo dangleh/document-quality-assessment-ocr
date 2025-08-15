@@ -21,3 +21,8 @@ logs/
 
 # OS-specific
 .DS_Store
+
+# Test artifacts and generated data
+output/
+data/bad_docs/
+input_bad.json
