@@ -34,17 +34,17 @@ install:
 # Run tests
 test:
 	@echo "Running tests..."
-	pytest tests/ -v
+	PYTHONPATH=. pytest tests/ -v
 
 # Run tests with coverage
 test-cov:
 	@echo "Running tests with coverage..."
-	pytest tests/ -v --cov=src --cov-report=term-missing
+	PYTHONPATH=. pytest tests/ -v --cov=src --cov-report=term-missing
 
 # Run tests with HTML coverage report
 test-html:
 	@echo "Running tests with HTML coverage report..."
-	pytest tests/ -v --cov=src --cov-report=html
+	PYTHONPATH=. pytest tests/ -v --cov=src --cov-report=html
 	@echo "Coverage report generated in htmlcov/"
 
 # Run linting checks
@@ -96,7 +96,7 @@ run:
 ]' > data/input.json; \
 	fi
 	@echo "Note: You need to place a sample PDF file at data/sample.pdf to test"
-	@echo "Then run: python src/main.py --input data/input.json --output output.json"
+	@echo "Then run: python src/main.py --input input.json --output output.json"
 
 # Run demonstration
 demo:

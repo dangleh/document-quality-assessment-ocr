@@ -51,7 +51,7 @@ show_help() {
     echo ""
     echo "Examples:"
     echo "  $0 -i input.json -o output.json"
-    echo "  $0 --input data/input.json --output results/output.json --verbose"
+    echo "  $0 --input input.json --output output.json --verbose"
     echo ""
 }
 

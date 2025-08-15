@@ -1,11 +1,14 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List, Union, Dict, Any
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, Field
+
 
 class CriteriaType(str, Enum):
     required = "required"
     recommended = "recommended"
     warning = "warning"
+
 
 class Threshold(BaseModel):
     # Resolution thresholds
@@ -13,33 +16,34 @@ class Threshold(BaseModel):
     min_width: Optional[int] = None
     tolerance_dpi: Optional[float] = None
     tolerance_width: Optional[int] = None
-    
+
     # Brightness thresholds
     min: Optional[float] = None
     max: Optional[float] = None
     min_contrast: Optional[float] = None
-    
+
     # Blur thresholds
     min_variance: Optional[float] = None
-    
+
     # Skew thresholds
     max_deg: Optional[float] = None
-    
+
     # Text density thresholds
     min_percent: Optional[float] = None
     max_percent: Optional[float] = None
-    
+
     # Noise thresholds
     max_percent: Optional[float] = None
-    
+
     # Watermark thresholds
     max_overlap: Optional[float] = None
-    
+
     # Compression thresholds
     min_entropy: Optional[float] = None
-    
+
     # Missing pages thresholds
     min_content_ratio: Optional[float] = None
+
 
 class CriteriaConfig(BaseModel):
     name: str
@@ -47,6 +51,7 @@ class CriteriaConfig(BaseModel):
     description: str
     threshold: Optional[Threshold] = None
     aggregate_mode: str = "min"
+
 
 class Document(BaseModel):
     documentID: str
@@ -58,10 +63,12 @@ class Document(BaseModel):
     reasons: Optional[List[str]] = None
     warnings: Optional[List[str]] = None
 
+
 class DocumentBatch(BaseModel):
     customerID: str
     transactionID: Optional[str] = None
     documents: List[Document]
+
 
 class ProcessingMetrics(BaseModel):
     total_docs: int = 0
@@ -72,6 +79,7 @@ class ProcessingMetrics(BaseModel):
     processing_time: float = 0.0
     memory_usage_mb: float = 0.0
     cpu_usage_percent: float = 0.0
+
 
 class ResourceUsage(BaseModel):
     stage: str

@@ -18,7 +18,7 @@
       "name": "text_density",
       "type": "required",
       "description": "Text density",
-      "threshold": { "min_percent": 5, "max_percent": 80 },
+      "threshold": { "min_percent": 1, "max_percent": 80 },
       "aggregate_mode": "avg"
     },
     {
@@ -26,7 +26,7 @@
       "type": "required",
       "description": "Minimum resolution",
       "threshold": {
-        "min_dpi": 50,
+        "min_dpi": 72,
         "min_width": 800,
         "tolerance_dpi": 5,
         "tolerance_width": 50
@@ -51,7 +51,7 @@
       "name": "noise",
       "type": "required",
       "description": "Background noise",
-      "threshold": { "max_percent": 10 },
+      "threshold": { "max_percent": 15 },
       "aggregate_mode": "max"
     },
     {
@@ -65,14 +65,14 @@
       "name": "compression",
       "type": "required",
       "description": "Compression artifact",
-      "threshold": { "min_entropy": 3.0 },
+      "threshold": { "min_entropy": 0.2 },
       "aggregate_mode": "min"
     },
     {
       "name": "missing_pages",
       "type": "required",
       "description": "Missing pages",
-      "threshold": { "min_content_ratio": 70 },
+      "threshold": { "min_content_ratio": 1 },
       "aggregate_mode": "min"
     }
   ]

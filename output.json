@@ -1,15 +1,465 @@
 [
     {
-        "customerID": "BATCH-003",
-        "transactionID": "TXN-BATCH-ALL-DOCS",
+        "customerID": "full-test-run",
+        "transactionID": "txn-full-docs-001",
         "documents": [
             {
-                "documentID": "watermark",
-                "documentType": "van_ban",
-                "documentFormat": "pdf",
-                "documentPath": "data/docs/watermark_doc.pdf",
+                "documentID": "[UC-1][B-02].pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/[UC-1][B-02].pdf",
                 "requiresOCR": true,
-                "isAccepted": true
+                "isAccepted": false,
+                "reasons": [
+                    "Text density out of range (97.69%)"
+                ],
+                "warnings": []
+            },
+            {
+                "documentID": "01.png",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/01.png",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "1_cv_ra_soat_de_nghi_khen_thuong_tong_ket_ptrao_thi_duasigned.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/1_cv_ra_soat_de_nghi_khen_thuong_tong_ket_ptrao_thi_duasigned.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "1. Thông báo dời trụ Sở.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/1. Thông báo dời trụ Sở.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "1.CV de nghi cung cap TK nhan tien khen thuong.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/1.CV de nghi cung cap TK nhan tien khen thuong.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "1247 STC CS_0001.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/1247 STC CS_0001.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "217-cp.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/217-cp.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "2652025_KHtochucKythitaynghe2025.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/2652025_KHtochucKythitaynghe2025.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "275-NSG-TCHC.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/275-NSG-TCHC.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "2964_KH_Hoigiangnhagiao_GDNN.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/2964_KH_Hoigiangnhagiao_GDNN.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "408-tb.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/408-tb.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "4642-BGDĐT-HSSV- CV 975.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/4642-BGDĐT-HSSV- CV 975.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "59:2020:QH14.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/59:2020:QH14.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "5e42d89c-c13f-4454-a96b-a4f8aa9eb98c.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/5e42d89c-c13f-4454-a96b-a4f8aa9eb98c.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "634_Ke_hoach_GDNN_nam_2025.sualoichinhta_signed (1).pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/634_Ke_hoach_GDNN_nam_2025.sualoichinhta_signed (1).pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "6d3ece8c-fcc6-4c2c-9fc9-cf20affbcf63.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/6d3ece8c-fcc6-4c2c-9fc9-cf20affbcf63.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "7370-cn.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/7370-cn.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "817_2872025_Trien khai Ky thi KNN 2025.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/817_2872025_Trien khai Ky thi KNN 2025.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "818_2872025_Trien khai Hoi giang 2025.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/818_2872025_Trien khai Hoi giang 2025.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "877_3172025_CVdexuatBST-BGK.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/877_3172025_CVdexuatBST-BGK.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "89815969-68b3-4e22-a3dd-755a25ff82b8.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/89815969-68b3-4e22-a3dd-755a25ff82b8.pdf",
+                "requiresOCR": true,
+                "isAccepted": false,
+                "reasons": [
+                    "Image too blurry (variance: 2.02)"
+                ],
+                "warnings": []
+            },
+            {
+                "documentID": "8c9a4506-8034-4d69-a6c0-736d492db417.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/8c9a4506-8034-4d69-a6c0-736d492db417.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "a27d635b-bfe7-410b-8665-2ba021642df8.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/a27d635b-bfe7-410b-8665-2ba021642df8.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "A29.118-DU-CV-42-2025.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/A29.118-DU-CV-42-2025.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "A29.118-DU-CV-44-2025.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/A29.118-DU-CV-44-2025.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "Automate release notes with GitHub - Training _ Microsoft Learn.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Automate release notes with GitHub - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "c380baff-54fb-479c-8f70-39aa9433cbb7.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/c380baff-54fb-479c-8f70-39aa9433cbb7.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "Configure GitHub tags to organize repositories - Training _ Microsoft Learn.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Configure GitHub tags to organize repositories - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true,
+                "isAccepted": false,
+                "reasons": [
+                    "Page may be missing or blank (content ratio: 0.67%)"
+                ],
+                "warnings": []
+            },
+            {
+                "documentID": "CV MỜI 01082025.signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/CV MỜI 01082025.signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "cv_trien_khai_kien_toan_to_chuc,_quy_che_lam_viec_signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/cv_trien_khai_kien_toan_to_chuc,_quy_che_lam_viec_signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "File_Guidelines_1217.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/File_Guidelines_1217.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "Giấy phép kinh doanh Phòng khám Táo Đỏ.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Giấy phép kinh doanh Phòng khám Táo Đỏ.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "GIẤY XÁC NHẬN_NGUYEN QUOC KHANH-signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/GIẤY XÁC NHẬN_NGUYEN QUOC KHANH-signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "HDSD KDCL UFM TT04 2016.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/HDSD KDCL UFM TT04 2016.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "image-9.jpg",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/image-9.jpg",
+                "requiresOCR": true,
+                "isAccepted": false,
+                "reasons": [
+                    "Text density out of range (97.87%)"
+                ],
+                "warnings": []
+            },
+            {
+                "documentID": "image-based.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/image-based.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "Introduction to technical debt - Training _ Microsoft Learn.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Introduction to technical debt - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "Người chuyển giao Trung tâm IBM.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Người chuyển giao Trung tâm IBM.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "Plan effective code reviews - Training _ Microsoft Learn.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/Plan effective code reviews - Training _ Microsoft Learn.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "sample-local-pdf.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/sample-local-pdf.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "scan_to_pdf_instructions.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/scan_to_pdf_instructions.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "t710_tbkl_lam_viec_36_xa,_phuong_a_hung_sua_signed.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/t710_tbkl_lam_viec_36_xa,_phuong_a_hung_sua_signed.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "tcb-uli-contract.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/tcb-uli-contract.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "text-based.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/text-based.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
+            },
+            {
+                "documentID": "watermark_doc.pdf",
+                "documentType": null,
+                "documentFormat": null,
+                "documentPath": "/Users/dang/Downloads/document-quality-assessment-ocr/data/docs/watermark_doc.pdf",
+                "requiresOCR": true,
+                "isAccepted": true,
+                "reasons": [],
+                "warnings": []
             }
         ]
     }
