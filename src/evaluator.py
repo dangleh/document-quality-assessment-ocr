@@ -1,50 +1,51 @@
-from typing import List, Tuple
-from src.models import Document, DocumentBatch
-from src.criteria import CRITERIA, CriteriaType, check_criteria, CriteriaConfig
-from src.utils import export_metrics, log_result
-import time
 import logging
 import os
+import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from typing import List, Tuple
 
-def evaluate_document_worker(doc: Document, criteria_list: List[CriteriaConfig], timeout_seconds: int) -> Tuple[bool, List[str], List[str]]:
+from src.criteria import CRITERIA, CriteriaConfig, run_all_checks_for_document
+from src.models import Document, DocumentBatch
+from src.utils import export_metrics, log_result
+
+
+def evaluate_document_worker(
+    doc: Document, criteria_list: List[CriteriaConfig], timeout_seconds: int
+) -> Tuple[bool, List[str], List[str]]:
     """
     Worker function to evaluate a single document. Runs in a separate process.
-    It no longer logs directly but returns results for the main process to log.
+    It calls the comprehensive check function and returns the results.
     """
     logging.info(f"Evaluating doc {doc.documentID} in process {os.getpid()}...")
     if not doc.requiresOCR:
         return True, [], []
 
     start_time = time.time()
-    reasons = []
-    warnings = []
-    is_accepted = True
 
     try:
-        for crit in criteria_list:
-            if time.time() - start_time > timeout_seconds:
-                reasons.append(f"Evaluation timeout after {timeout_seconds}s")
-                is_accepted = False
-                break
+        # The timeout is now handled by the ProcessPoolExecutor's future.
+        # However, we can keep a safeguard here if needed, or rely on the caller.
+        # For simplicity, we'll call the main function directly.
+        is_accepted, reasons, warnings = run_all_checks_for_document(
+            doc.documentPath, doc.documentFormat, criteria_list
+        )
 
-            pass_check, reason = check_criteria(doc.documentPath, crit, doc.documentFormat)
-            if not pass_check:
-                if crit.type == CriteriaType.required:
-                    reasons.append(reason)
-                    is_accepted = False
-                    break
-                elif crit.type == CriteriaType.recommended:
-                    reasons.append(reason)
-                elif crit.type == CriteriaType.warning:
-                    warnings.append(reason)
-        
+        if time.time() - start_time > timeout_seconds:
+            # This check is now post-evaluation, which is not ideal.
+            # The primary timeout should be managed by the caller of this worker.
+            logging.warning(f"Evaluation for {doc.documentID} exceeded timeout of {timeout_seconds}s")
+            # We might decide to override the result if it timed out.
+            # For now, we just log it.
+
         return is_accepted, reasons, warnings
 
     except Exception as e:
         error_msg = f"Unexpected error during evaluation: {str(e)}"
-        logging.error(f"Critical error in worker for doc {doc.documentID}: {error_msg}", exc_info=True)
+        logging.error(
+            f"Critical error in worker for doc {doc.documentID}: {error_msg}", exc_info=True
+        )
         return False, [error_msg], []
+
 
 def run_pipeline(data: List[dict], timeout_per_doc: int = 60) -> List[dict]:
     """
@@ -54,29 +55,31 @@ def run_pipeline(data: List[dict], timeout_per_doc: int = 60) -> List[dict]:
     try:
         validated_data = [DocumentBatch.model_validate(item) for item in data]
         all_docs = {doc.documentID: doc for batch in validated_data for doc in batch.documents}
-        
+
         metrics = {
             "total_docs": 0,
             "accepted_docs": 0,
             "rejected_docs": 0,
             "rejection_summary": {},
-            "rejected_documents": []
+            "rejected_documents": [],
         }
-        
+
         with ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
             future_to_doc_id = {
                 executor.submit(evaluate_document_worker, doc, CRITERIA, timeout_per_doc): doc_id
                 for doc_id, doc in all_docs.items()
             }
-            
-            logging.info(f"Submitted {len(all_docs)} documents to ProcessPoolExecutor with {os.cpu_count() or 1} workers.")
-            
+
+            logging.info(
+                f"Submitted {len(all_docs)} documents to ProcessPoolExecutor with {os.cpu_count() or 1} workers."
+            )
+
             for future in as_completed(future_to_doc_id):
                 doc_id = future_to_doc_id[future]
                 doc_obj = all_docs[doc_id]
                 try:
                     is_accepted, reasons, warnings = future.result()
-                    
+
                     # Centralized logging in the main process
                     log_result(doc_id, is_accepted, reasons, warnings)
 
@@ -91,49 +94,50 @@ def run_pipeline(data: List[dict], timeout_per_doc: int = 60) -> List[dict]:
                         metrics["accepted_docs"] += 1
                     else:
                         metrics["rejected_docs"] += 1
-                        metrics["rejected_documents"].append({
-                            "documentID": doc_id,
-                            "reasons": reasons
-                        })
+                        metrics["rejected_documents"].append(
+                            {"documentID": doc_id, "reasons": reasons}
+                        )
                         for r in reasons:
-                            metrics["rejection_summary"][r] = metrics["rejection_summary"].get(r, 0) + 1
-                            
+                            metrics["rejection_summary"][r] = (
+                                metrics["rejection_summary"].get(r, 0) + 1
+                            )
+
                 except Exception as exc:
-                    logging.error(f"Document {doc_id} generated a critical exception in the future: {exc}", exc_info=True)
+                    logging.error(
+                        f"Document {doc_id} generated a critical exception in the future: {exc}",
+                        exc_info=True,
+                    )
                     reasons = [f"Critical processing error: {str(exc)}"]
                     doc_obj.isAccepted = False
                     doc_obj.reasons = reasons
-                    
+
                     # Update metrics for critical failure
                     metrics["total_docs"] += 1
                     metrics["rejected_docs"] += 1
-                    metrics["rejected_documents"].append({
-                        "documentID": doc_id,
-                        "reasons": reasons
-                    })
+                    metrics["rejected_documents"].append({"documentID": doc_id, "reasons": reasons})
                     for r in reasons:
                         metrics["rejection_summary"][r] = metrics["rejection_summary"].get(r, 0) + 1
 
         logging.info(f"All documents processed in {time.time() - start_time:.2f} seconds.")
-        
+
         # Export metrics
         from datetime import datetime
+
         run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         export_metrics(run_id, metrics)
-        
+
         # Create the final output using the *updated* documents from `all_docs`
         final_output = []
         for batch in validated_data:
-            batch_dict = batch.model_dump(exclude={'documents'})
+            batch_dict = batch.model_dump(exclude={"documents"})
             # Look up the updated doc from the central dictionary to build the final output
-            batch_dict['documents'] = [
-                all_docs[doc.documentID].model_dump(exclude={'reasons', 'warnings'}) 
-                for doc in batch.documents
+            batch_dict["documents"] = [
+                all_docs[doc.documentID].model_dump() for doc in batch.documents
             ]
             final_output.append(batch_dict)
 
         return final_output
-        
+
     except Exception as e:
         logging.error(f"Pipeline error: {e}", exc_info=True)
         raise

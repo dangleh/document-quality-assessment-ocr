@@ -8,6 +8,20 @@
       "aggregate_mode": "all_pass"
     },
     {
+      "name": "skew",
+      "type": "required",
+      "description": "Skew",
+      "threshold": { "max_deg": 5 },
+      "aggregate_mode": "max"
+    },
+    {
+      "name": "text_density",
+      "type": "required",
+      "description": "Text density",
+      "threshold": { "min_percent": 5, "max_percent": 80 },
+      "aggregate_mode": "avg"
+    },
+    {
       "name": "resolution",
       "type": "required",
       "description": "Minimum resolution",
@@ -34,43 +48,29 @@
       "aggregate_mode": "min"
     },
     {
-      "name": "skew",
-      "type": "recommended",
-      "description": "Skew",
-      "threshold": { "max_deg": 5 },
-      "aggregate_mode": "max"
-    },
-    {
-      "name": "text_density",
-      "type": "recommended",
-      "description": "Text density",
-      "threshold": { "min_percent": 5, "max_percent": 80 },
-      "aggregate_mode": "avg"
-    },
-    {
       "name": "noise",
-      "type": "recommended",
+      "type": "required",
       "description": "Background noise",
       "threshold": { "max_percent": 10 },
       "aggregate_mode": "max"
     },
     {
       "name": "watermark",
-      "type": "warning",
+      "type": "required",
       "description": "Watermark interference",
       "threshold": { "max_overlap": 10 },
       "aggregate_mode": "max"
     },
     {
       "name": "compression",
-      "type": "warning",
+      "type": "required",
       "description": "Compression artifact",
       "threshold": { "min_entropy": 3.0 },
       "aggregate_mode": "min"
     },
     {
       "name": "missing_pages",
-      "type": "warning",
+      "type": "required",
       "description": "Missing pages",
       "threshold": { "min_content_ratio": 70 },
       "aggregate_mode": "min"
