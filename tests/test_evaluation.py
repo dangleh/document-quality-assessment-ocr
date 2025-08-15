@@ -6,9 +6,9 @@ import pytest
 from PIL import Image
 
 # Corrected imports
-from src.models import CriteriaConfig, CriteriaType, Threshold, Document, DocumentBatch
-from src.criteria import run_all_checks_for_document
-from src.evaluator import evaluate_document_worker, run_pipeline
+from document_assessor.models import CriteriaConfig, CriteriaType, Threshold, Document, DocumentBatch
+from document_assessor.criteria import run_all_checks_for_document
+from document_assessor.evaluator import evaluate_document_worker, run_pipeline
 
 # A dummy image for mocking
 DUMMY_IMAGE = Image.new("L", (100, 100))
@@ -17,7 +17,7 @@ DUMMY_IMAGE = Image.new("L", (100, 100))
 class TestRunAllChecks:
     """Tests for the run_all_checks_for_document function."""
 
-    @patch("src.criteria._get_images_from_path", return_value=[DUMMY_IMAGE])
+    @patch("document_assessor.criteria._get_images_from_path", return_value=[DUMMY_IMAGE])
     def test_file_integrity_pass(self, mock_get_images):
         """Test that file_integrity passes if images can be extracted."""
         criteria = [
@@ -31,7 +31,7 @@ class TestRunAllChecks:
         assert warnings == []
         mock_get_images.assert_called_once()
 
-    @patch("src.criteria._get_images_from_path", return_value=[])
+    @patch("document_assessor.criteria._get_images_from_path", return_value=[])
     def test_file_integrity_fail_no_images(self, mock_get_images):
         """Test that the check fails if no images are extracted."""
         criteria = [
@@ -43,7 +43,7 @@ class TestRunAllChecks:
         assert is_accepted is False
         assert "No images could be extracted" in reasons[0]
 
-    @patch("src.criteria._get_images_from_path", side_effect=ValueError("Test error"))
+    @patch("document_assessor.criteria._get_images_from_path", side_effect=ValueError("Test error"))
     def test_critical_error_handling(self, mock_get_images):
         """Test that a critical error during image extraction is handled."""
         is_accepted, reasons, warnings = run_all_checks_for_document(
@@ -68,8 +68,8 @@ class TestRunAllChecks:
         low_res_image.info = {"dpi": (150, 150)}
 
         # Patch both metadata check and estimation to fail
-        with patch("src.criteria._get_images_from_path", return_value=[low_res_image]):
-            with patch("src.criteria.estimate_dpi_from_image", return_value=160):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[low_res_image]):
+            with patch("document_assessor.criteria.estimate_dpi_from_image", return_value=160):
                 is_accepted, reasons, warnings = run_all_checks_for_document(
                     "/fake/path.pdf", "pdf", criteria
                 )
@@ -88,7 +88,7 @@ class TestRunAllChecks:
         ]
         # A plain white image will have 0 variance, failing the blur check
         blurry_image = Image.new("L", (500, 500), color=255)
-        with patch("src.criteria._get_images_from_path", return_value=[blurry_image]):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[blurry_image]):
             is_accepted, reasons, warnings = run_all_checks_for_document(
                 "/fake/path.jpg", "jpg", criteria
             )
@@ -105,9 +105,9 @@ class TestRunAllChecks:
                 threshold=Threshold(max_deg=2),
             )
         ]
-        with patch("src.criteria._get_images_from_path", return_value=[DUMMY_IMAGE]):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[DUMMY_IMAGE]):
             # Patch the calculation to return a high skew angle
-            with patch("src.criteria.calculate_skew", return_value=4.0):
+            with patch("document_assessor.criteria.calculate_skew", return_value=4.0):
                 is_accepted, reasons, warnings = run_all_checks_for_document(
                     "/fake/path.tiff", "tiff", criteria
                 )
@@ -129,7 +129,7 @@ class TestEvaluator:
         assert reasons == []
         assert warnings == []
 
-    @patch("src.evaluator.run_all_checks_for_document")
+    @patch("document_assessor.evaluator.run_all_checks_for_document")
     def test_evaluate_document_worker_required_fail(self, mock_run_all_checks):
         """Test worker when a required criterion fails."""
         mock_run_all_checks.return_value = (False, ["Resolution too low"], [])
@@ -142,7 +142,7 @@ class TestEvaluator:
         assert warnings == []
         mock_run_all_checks.assert_called_once()
 
-    @patch("src.evaluator.run_all_checks_for_document")
+    @patch("document_assessor.evaluator.run_all_checks_for_document")
     def test_evaluate_document_worker_recommended_fail(self, mock_run_all_checks):
         """Test worker when a recommended criterion fails."""
         # The check itself returns True for is_accepted, but includes a reason
@@ -155,7 +155,7 @@ class TestEvaluator:
         assert reasons == ["Skew angle too large"]
         assert warnings == []
 
-    @patch("src.evaluator.run_all_checks_for_document")
+    @patch("document_assessor.evaluator.run_all_checks_for_document")
     def test_evaluate_document_worker_warning_fail(self, mock_run_all_checks):
         """Test worker when a warning criterion fails."""
         # The check returns True, with no reasons, but with a warning
@@ -172,7 +172,7 @@ class TestEvaluator:
 class TestPipeline:
     """Tests for the main run_pipeline function."""
 
-    @patch("src.evaluator.run_all_checks_for_document")
+    @patch("document_assessor.evaluator.run_all_checks_for_document")
     def test_run_pipeline_success(self, mock_run_all_checks):
         """
         Test a successful pipeline run.
@@ -196,9 +196,12 @@ class TestPipeline:
                 ],
             }
         ]
+        
+        # Dummy criteria list
+        criteria_list = [CriteriaConfig(name="dummy", type=CriteriaType.required, description="d")]
 
         # The pipeline will now run sequentially due to the conftest fixture
-        result = run_pipeline(input_data)
+        result = run_pipeline(input_data, criteria_list=criteria_list)
 
         assert result[0]["documents"][0]["isAccepted"] is True
         # Check that our underlying check function was called
@@ -209,7 +212,7 @@ class TestPipeline:
         # Missing 'transactionID' and 'documents'
         invalid_data = [{"customerID": "c1"}]
         with pytest.raises(Exception): # Pydantic raises a ValidationError
-            run_pipeline(invalid_data)
+            run_pipeline(invalid_data, criteria_list=[])
 
 if __name__ == "__main__":
     pytest.main([__file__])

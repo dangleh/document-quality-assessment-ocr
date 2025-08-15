@@ -2,8 +2,9 @@ import argparse
 import sys
 import time
 
-from src.evaluator import run_pipeline
-from src.utils import get_logger, load_json, save_json
+from document_assessor.criteria import load_criteria_config
+from document_assessor.evaluator import run_pipeline
+from document_assessor.utils import get_logger, load_json, save_json
 
 
 def main():
@@ -13,6 +14,11 @@ def main():
     parser = argparse.ArgumentParser(description="B-02 Quality Evaluation Module")
     parser.add_argument("--input", required=True, help="Input JSON path")
     parser.add_argument("--output", required=True, help="Output JSON path")
+    parser.add_argument(
+        "--config",
+        default="config/criteria_config.json",
+        help="Path to criteria config JSON",
+    )
     parser.add_argument(
         "--timeout", type=int, default=300, help="Timeout in seconds (default: 300)"
     )
@@ -24,7 +30,13 @@ def main():
         logger.info(f"Starting document quality assessment...")
         logger.info(f"Input: {args.input}")
         logger.info(f"Output: {args.output}")
+        logger.info(f"Config: {args.config}")
         logger.info(f"Timeout: {args.timeout}s")
+
+        # Load criteria config
+        logger.info("Loading criteria config...")
+        criteria_list = load_criteria_config(args.config)
+        logger.info(f"Loaded {len(criteria_list)} criteria")
 
         # Load input data
         logger.info("Loading input data...")
@@ -33,7 +45,9 @@ def main():
 
         # Process data with timeout protection
         logger.info("Processing documents...")
-        processed_data = run_pipeline(data, timeout_per_doc=args.timeout)
+        processed_data = run_pipeline(
+            data, criteria_list=criteria_list, timeout_per_doc=args.timeout
+        )
 
         # Save results
         logger.info("Saving results...")

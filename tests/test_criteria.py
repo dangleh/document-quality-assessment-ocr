@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from src.models import CriteriaConfig, CriteriaType, Threshold
-from src.criteria import (
+from document_assessor.models import CriteriaConfig, CriteriaType, Threshold
+from document_assessor.criteria import (
     run_all_checks_for_document,
     calculate_content_ratio,
     detect_watermark_fft,
@@ -28,7 +28,7 @@ def add_noise(img, prob=0.1):
     return Image.fromarray(output)
 
 class TestCriteriaLogic:
-    """Dedicated tests for specific criteria logic in src/criteria.py"""
+    """Dedicated tests for specific criteria logic in document_assessor/criteria.py"""
 
     def test_text_density_fail_too_low(self):
         """Test text_density fails when content ratio is below min_percent."""
@@ -45,7 +45,7 @@ class TestCriteriaLogic:
         img = create_image(200, 200, "white")
         img.paste(create_image(20, 40, "black"), (90, 80))
 
-        with patch("src.criteria._get_images_from_path", return_value=[img]):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[img]):
             is_accepted, reasons, _ = run_all_checks_for_document("fake.pdf", "pdf", criteria)
             assert not is_accepted
             assert "Text density out of range" in reasons[0]
@@ -65,7 +65,7 @@ class TestCriteriaLogic:
         img = create_image(200, 200, "black")
         img.paste(create_image(20, 40, "white"), (90, 80))
 
-        with patch("src.criteria._get_images_from_path", return_value=[img]):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[img]):
             is_accepted, reasons, _ = run_all_checks_for_document("fake.pdf", "pdf", criteria)
             assert not is_accepted
             assert "Text density out of range" in reasons[0]
@@ -85,7 +85,7 @@ class TestCriteriaLogic:
         img = create_image(200, 200, "white")
         img.paste(create_image(10, 20, "black"), (90, 90))
 
-        with patch("src.criteria._get_images_from_path", return_value=[img]):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[img]):
             is_accepted, reasons, _ = run_all_checks_for_document("fake.pdf", "pdf", criteria)
             assert is_accepted  # Recommended, so it shouldn't fail the document
             assert "Page may be missing or blank" in reasons[0]
@@ -103,7 +103,7 @@ class TestCriteriaLogic:
         clean_img = create_image(300, 300, "white")
         noisy_img = add_noise(clean_img, prob=0.3) # 30% noise
 
-        with patch("src.criteria._get_images_from_path", return_value=[noisy_img]):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[noisy_img]):
             is_accepted, reasons, _ = run_all_checks_for_document("fake.jpg", "jpg", criteria)
             assert not is_accepted
             assert "Noise level too high" in reasons[0]
@@ -120,7 +120,7 @@ class TestCriteriaLogic:
         ]
         clean_img = create_image(300, 300, "white")
 
-        with patch("src.criteria._get_images_from_path", return_value=[clean_img]):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[clean_img]):
             is_accepted, reasons, _ = run_all_checks_for_document("fake.jpg", "jpg", criteria)
             assert is_accepted
             assert reasons == []
@@ -138,7 +138,7 @@ class TestCriteriaLogic:
         # A plain image has very low entropy
         low_entropy_img = create_image(300, 300, 128)
 
-        with patch("src.criteria._get_images_from_path", return_value=[low_entropy_img]):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[low_entropy_img]):
             is_accepted, _, warnings = run_all_checks_for_document("fake.jpg", "jpg", criteria)
             assert is_accepted # It's a warning
             assert "Compression artifact detected" in warnings[0]
@@ -157,8 +157,8 @@ class TestCriteriaLogic:
         low_res_image = create_image(800, 600, "white")
         low_res_image.info = {"dpi": (72, 72)}
 
-        with patch("src.criteria._get_images_from_path", return_value=[low_res_image]):
-            with patch("src.criteria.estimate_dpi_from_image", return_value=250):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[low_res_image]):
+            with patch("document_assessor.criteria.estimate_dpi_from_image", return_value=250):
                 is_accepted, reasons, _ = run_all_checks_for_document("fake.pdf", "pdf", criteria)
                 assert is_accepted
                 assert reasons == []
@@ -175,13 +175,13 @@ class TestCriteriaLogic:
         ]
         # Test with an image at the minimum brightness
         min_bright_img = create_image(100, 100, 50)
-        with patch("src.criteria._get_images_from_path", return_value=[min_bright_img]):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[min_bright_img]):
             is_accepted, _, _ = run_all_checks_for_document("fake.jpg", "jpg", criteria)
             assert is_accepted
 
         # Test with an image at the maximum brightness
         max_bright_img = create_image(100, 100, 220)
-        with patch("src.criteria._get_images_from_path", return_value=[max_bright_img]):
+        with patch("document_assessor.criteria._get_images_from_path", return_value=[max_bright_img]):
             is_accepted, _, _ = run_all_checks_for_document("fake.jpg", "jpg", criteria)
             assert is_accepted
 

@@ -9,8 +9,8 @@ import fitz
 import pytest
 from PIL import Image
 
-from src.handlers.pdf_handler import get_images_from_pdf
-from src.handlers.tiff_handler import get_images_from_tiff
+from document_assessor.handlers.pdf_handler import get_images_from_pdf
+from document_assessor.handlers.tiff_handler import get_images_from_tiff
 
 
 # Helper to create valid dummy image bytes

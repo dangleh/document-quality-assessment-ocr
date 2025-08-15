@@ -15,15 +15,21 @@ def setup_test_files(tmp_path):
     
     input_file = input_dir / "input.json"
     output_file = output_dir / "output.json"
+    config_file = tmp_path / "config.json"
     
-    return str(input_file), str(output_file)
+    # Create a dummy config file
+    dummy_config = {"criteria": []}
+    with open(config_file, 'w') as f:
+        json.dump(dummy_config, f)
+    
+    return str(input_file), str(output_file), str(config_file)
 
 def test_main_success_run(setup_test_files):
     """
     Test the main function for a successful run, mocking the pipeline.
     This is an end-to-end test for the application's entry point.
     """
-    input_path, output_path = setup_test_files
+    input_path, output_path, config_path = setup_test_files
     
     # 1. Create dummy input data
     input_data = [{
@@ -52,8 +58,8 @@ def test_main_success_run(setup_test_files):
 
     # 3. Patch the core pipeline and run main
     with patch('src.main.run_pipeline', return_value=mock_output_data) as mock_pipeline:
-        # Simulate running from command line: python main.py --input ... --output ...
-        test_args = ["main.py", "--input", input_path, "--output", output_path]
+        # Simulate running from command line: python main.py --input ... --output ... --config ...
+        test_args = ["main.py", "--input", input_path, "--output", output_path, "--config", config_path]
         with patch('sys.argv', test_args):
             main()
             
@@ -65,9 +71,10 @@ def test_main_success_run(setup_test_files):
     
     assert result_data == mock_output_data
 
-def test_main_input_file_not_found():
+def test_main_input_file_not_found(setup_test_files):
     """Test that the system exits gracefully if the input file does not exist."""
-    test_args = ["main.py", "--input", "/non/existent/file.json", "--output", "/fake/output.json"]
+    _, output_path, config_path = setup_test_files
+    test_args = ["main.py", "--input", "/non/existent/file.json", "--output", output_path, "--config", config_path]
     with patch('sys.argv', test_args):
         with pytest.raises(SystemExit) as e:
             main()
@@ -75,16 +82,19 @@ def test_main_input_file_not_found():
         assert e.type == SystemExit
         assert e.value.code == 1
 
-def test_main_pipeline_exception():
+def test_main_pipeline_exception(setup_test_files):
     """Test that the system exits gracefully if the pipeline raises an exception."""
-    # This test can use real files as the error happens in the pipeline
-    input_data = [{"customerID": "c1", "documents": []}]
+    input_path, output_path, config_path = setup_test_files
     
-    with patch('src.main.load_json', return_value=input_data):
-        with patch('src.main.run_pipeline', side_effect=Exception("Pipeline Error")):
-            test_args = ["main.py", "--input", "fake.json", "--output", "fake.json"]
-            with patch('sys.argv', test_args):
-                with pytest.raises(SystemExit) as e:
-                    main()
-                assert e.type == SystemExit
-                assert e.value.code == 1
+    # Create dummy input data
+    input_data = [{"customerID": "c1", "documents": []}]
+    with open(input_path, 'w') as f:
+        json.dump(input_data, f)
+
+    with patch('src.main.run_pipeline', side_effect=Exception("Pipeline Error")):
+        test_args = ["main.py", "--input", input_path, "--output", output_path, "--config", config_path]
+        with patch('sys.argv', test_args):
+            with pytest.raises(SystemExit) as e:
+                main()
+            assert e.type == SystemExit
+            assert e.value.code == 1

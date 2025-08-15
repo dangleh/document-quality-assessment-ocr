@@ -4,9 +4,9 @@ import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import List, Tuple
 
-from src.criteria import CRITERIA, CriteriaConfig, run_all_checks_for_document
-from src.models import Document, DocumentBatch
-from src.utils import export_metrics, log_result
+from document_assessor.criteria import CriteriaConfig, run_all_checks_for_document
+from document_assessor.models import Document, DocumentBatch
+from document_assessor.utils import export_metrics, log_result
 
 
 def evaluate_document_worker(
@@ -47,7 +47,9 @@ def evaluate_document_worker(
         return False, [error_msg], []
 
 
-def run_pipeline(data: List[dict], timeout_per_doc: int = 60) -> List[dict]:
+def run_pipeline(
+    data: List[dict], criteria_list: List[CriteriaConfig], timeout_per_doc: int = 60
+) -> List[dict]:
     """
     Runs the evaluation pipeline in parallel, ensuring results and logs are correctly handled.
     """
@@ -66,7 +68,9 @@ def run_pipeline(data: List[dict], timeout_per_doc: int = 60) -> List[dict]:
 
         with ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
             future_to_doc_id = {
-                executor.submit(evaluate_document_worker, doc, CRITERIA, timeout_per_doc): doc_id
+                executor.submit(
+                    evaluate_document_worker, doc, criteria_list, timeout_per_doc
+                ): doc_id
                 for doc_id, doc in all_docs.items()
             }
 

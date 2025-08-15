@@ -9,10 +9,10 @@ import fitz
 import numpy as np
 from PIL import Image, ImageChops, ImageFilter, ImageStat
 
-from src.handlers.pdf_handler import get_images_from_pdf
-from src.handlers.tiff_handler import get_images_from_tiff
-from src.models import CriteriaConfig, Threshold
-from src.utils import logging
+from document_assessor.handlers.pdf_handler import get_images_from_pdf
+from document_assessor.handlers.tiff_handler import get_images_from_tiff
+from document_assessor.models import CriteriaConfig, Threshold, CriteriaType
+from document_assessor.utils import logging
 
 
 def load_criteria_config(config_path: str) -> List[CriteriaConfig]:
@@ -25,7 +25,7 @@ def load_criteria_config(config_path: str) -> List[CriteriaConfig]:
         raise
 
 
-CRITERIA = load_criteria_config("config/criteria_config.json")
+
 
 
 def _get_images_from_path(
@@ -178,7 +178,7 @@ def run_all_checks_for_document(
             doc_format = os.path.splitext(doc_path)[1].lower().replace(".", "")
 
         resolution_criteria_config = next(
-            (c for c in CRITERIA if c.name == "resolution"), None
+            (c for c in criteria_list if c.name == "resolution"), None
         )
         min_dpi_to_extract = (
             int(resolution_criteria_config.threshold.min_dpi)
@@ -307,7 +307,7 @@ def run_all_checks_for_document(
 
             # 4. Handle result
             if not pass_check:
-                from src.models import CriteriaType
+                from document_assessor.models import CriteriaType
                 if criteria.type == CriteriaType.required:
                     is_accepted = False
                     reasons.append(reason)

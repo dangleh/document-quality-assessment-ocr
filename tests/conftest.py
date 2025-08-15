@@ -36,4 +36,4 @@ def disable_multiprocessing_for_tests(monkeypatch):
     sequential execution during testing.
     """
     # Use monkeypatch to replace the class in the specified module
-    monkeypatch.setattr("src.evaluator.ProcessPoolExecutor", SyncExecutor)
+    monkeypatch.setattr("document_assessor.evaluator.ProcessPoolExecutor", SyncExecutor)

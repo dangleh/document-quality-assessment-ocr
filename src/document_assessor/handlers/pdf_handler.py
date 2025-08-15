@@ -11,7 +11,7 @@ import fitz
 import psutil
 from PIL import Image
 
-from src.utils import (
+from ..utils import (
     get_file_size_mb,
     get_image_info,
     log_resource_usage,

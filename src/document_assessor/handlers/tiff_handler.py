@@ -2,7 +2,7 @@ import gc
 
 from PIL import Image
 
-from src.utils import logging
+from document_assessor.utils import logging
 
 
 def get_images_from_tiff(path: str) -> list[Image.Image]:

@@ -3,7 +3,7 @@ import os
 import json
 import logging
 from unittest.mock import patch
-from src.utils import load_json, export_metrics, setup_logging
+from document_assessor.utils import load_json, export_metrics, setup_logging
 
 def test_load_json_success(tmp_path):
     """Test loading a valid JSON input file."""
@@ -31,7 +31,7 @@ def test_export_metrics(tmp_path, monkeypatch):
     metrics = {"total": 10, "passed": 8, "failed": 2}
     
     # Use monkeypatch to temporarily change the METRICS_DIR variable
-    monkeypatch.setattr('src.utils.METRICS_DIR', tmp_path)
+    monkeypatch.setattr('document_assessor.utils.METRICS_DIR', tmp_path)
     
     export_metrics(run_id, metrics)
     
@@ -47,7 +47,7 @@ def test_export_metrics(tmp_path, monkeypatch):
 def test_setup_logging(mock_file_handler, tmp_path, monkeypatch):
     """Test the logging setup function, ensuring it writes to a temp dir."""
     # Use monkeypatch to change the LOG_DIR variable
-    monkeypatch.setattr('src.utils.LOG_DIR', tmp_path)
+    monkeypatch.setattr('document_assessor.utils.LOG_DIR', tmp_path)
     
     # Reload the app config to ensure our changes are picked up if needed
     # and then setup logging.
