@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
-import fitz
+import pymupdf
 import pytest
 from PIL import Image
 
@@ -47,7 +47,7 @@ class TestPDFHandler:
         # Mock PIL Image
         mock_image = Image.new("L", (100, 100))
 
-        with patch("fitz.open", return_value=mock_doc), patch(
+        with patch("pymupdf.open", return_value=mock_doc), patch(
             "PIL.Image.open", return_value=mock_image
         ), patch("io.BytesIO") as mock_bytesio:
 
@@ -70,7 +70,7 @@ class TestPDFHandler:
         mock_pixmap.tobytes.return_value = _get_dummy_png_bytes()
         mock_page.rect = Mock(width=100, height=100)
 
-        with patch("fitz.open", return_value=mock_doc):
+        with patch("pymupdf.open", return_value=mock_doc):
             with patch("PIL.Image.open", return_value=Image.new("L", (1, 1))):
                 result = get_images_from_pdf("/fake/path.pdf", max_pages=3)
 
@@ -80,13 +80,13 @@ class TestPDFHandler:
 
     def test_get_images_from_pdf_file_not_found(self):
         """Test PDF handler with non-existent file"""
-        with patch("fitz.open", side_effect=FileNotFoundError("File not found")):
+        with patch("pymupdf.open", side_effect=FileNotFoundError("File not found")):
             with pytest.raises(ValueError, match="File not found"):
                 get_images_from_pdf("/nonexistent/path.pdf")
 
     def test_get_images_from_pdf_corrupted_file(self):
         """Test PDF handler with corrupted PDF file"""
-        with patch("fitz.open", side_effect=Exception("Corrupted PDF")):
+        with patch("pymupdf.open", side_effect=Exception("Corrupted PDF")):
             with pytest.raises(ValueError, match="Corrupted PDF"):
                 get_images_from_pdf("/corrupted/file.pdf")
 
@@ -95,7 +95,7 @@ class TestPDFHandler:
         mock_doc = Mock(spec=["__len__", "close"])
         mock_doc.__len__ = MagicMock(return_value=0)
 
-        with patch("fitz.open", return_value=mock_doc):
+        with patch("pymupdf.open", return_value=mock_doc):
             result = get_images_from_pdf("/empty/file.pdf")
 
             assert len(result) == 0
@@ -107,7 +107,7 @@ class TestPDFHandler:
         mock_doc.__len__ = MagicMock(return_value=1)
         mock_doc.load_page.side_effect = Exception("Page processing failed")
 
-        with patch("fitz.open", return_value=mock_doc):
+        with patch("pymupdf.open", return_value=mock_doc):
             with pytest.raises(ValueError, match="Failed to extract even the first page"):
                 get_images_from_pdf("/problematic/file.pdf")
             mock_doc.close.assert_called_once()
@@ -121,7 +121,7 @@ class TestPDFHandler:
         mock_page.get_pixmap.side_effect = Exception("Pixmap creation failed")
         mock_page.rect = Mock(width=100, height=100)
 
-        with patch("fitz.open", return_value=mock_doc):
+        with patch("pymupdf.open", return_value=mock_doc):
             with pytest.raises(ValueError, match="Failed to extract even the first page"):
                 get_images_from_pdf("/problematic/file.pdf")
             mock_doc.close.assert_called_once()
@@ -145,7 +145,7 @@ class TestPDFHandler:
 
         mock_image = Image.new("L", (100, 100))
 
-        with patch("fitz.open", return_value=mock_doc), patch(
+        with patch("pymupdf.open", return_value=mock_doc), patch(
             "PIL.Image.open", return_value=mock_image
         ), patch("io.BytesIO") as mock_bytesio:
 
@@ -261,7 +261,7 @@ class TestHandlerIntegration:
         # Create a realistic mock image
         mock_image = Image.new("L", (800, 600))
 
-        with patch("fitz.open", return_value=mock_doc), patch(
+        with patch("pymupdf.open", return_value=mock_doc), patch(
             "PIL.Image.open", return_value=mock_image
         ), patch("io.BytesIO") as mock_bytesio:
 
@@ -301,7 +301,7 @@ class TestHandlerErrorRecovery:
         mock_doc.__len__ = MagicMock(return_value=1)
         mock_doc.load_page.side_effect = Exception("Processing error")
 
-        with patch("fitz.open", return_value=mock_doc):
+        with patch("pymupdf.open", return_value=mock_doc):
             with pytest.raises(ValueError, match="Failed to extract even the first page"):
                 get_images_from_pdf("/problematic/file.pdf")
             # Ensure document is closed even on error

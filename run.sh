@@ -69,7 +69,7 @@ check_dependencies() {
         exit 1
     fi
     
-    if ! python3 -c "import fitz" &> /dev/null; then
+    if ! python3 -c "import pymupdf" &> /dev/null; then
         print_error "PyMuPDF is not installed. Please run: pip install -r requirements.txt"
         exit 1
     fi

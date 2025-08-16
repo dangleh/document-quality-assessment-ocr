@@ -5,7 +5,7 @@ import time
 from typing import List, Tuple
 
 import cv2
-import fitz
+import pymupdf
 import numpy as np
 from PIL import Image, ImageChops, ImageFilter, ImageStat
 
@@ -222,7 +222,7 @@ def run_all_checks_for_document(
 
                 dpis = [img.info.get("dpi", (0, 0))[0] for img in images]
                 if not all(dpis) and doc_format == "pdf":
-                    with fitz.open(doc_path) as doc:
+                    with pymupdf.open(doc_path) as doc:
                         dpis = [
                             (images[i].size[0] * 72 / page.rect.width)
                             if page.rect.width > 0
