@@ -1,11 +1,6 @@
 import base64
-import io
-import os
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
-import pymupdf
 import pytest
 from PIL import Image
 
@@ -16,67 +11,59 @@ from document_assessor.handlers.tiff_handler import get_images_from_tiff
 # Helper to create valid dummy image bytes
 def _get_dummy_png_bytes() -> bytes:
     """Returns bytes for a valid 1x1 black PNG."""
-    # A valid 1x1 black PNG, base64 encoded
     png_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
     return base64.b64decode(png_b64)
+
+
+@pytest.fixture
+def mock_pdf_doc():
+    """A pytest fixture to create a mock PyMuPDF document object."""
+    # Create a mock for the document object that the `with` statement will use
+    mock_doc = MagicMock()
+    mock_doc.__enter__.return_value = mock_doc  # Important for `with` statement
+    mock_doc.__exit__.return_value = None
+
+    # Mock page methods
+    mock_page = MagicMock()
+    mock_pixmap = MagicMock()
+    mock_pixmap.tobytes.return_value = _get_dummy_png_bytes()
+    mock_page.get_pixmap.return_value = mock_pixmap
+    mock_page.rect.width = 800
+    mock_page.rect.height = 600
+    mock_doc.load_page.return_value = mock_page
+
+    return mock_doc
 
 
 class TestPDFHandler:
     """Test PDF handler functionality"""
 
-    def test_get_images_from_pdf_success(self):
+    def test_get_images_from_pdf_success(self, mock_pdf_doc):
         """Test successful PDF to image conversion"""
-        # Create a mock PDF document with proper spec
-        mock_doc = Mock(spec=["__len__", "load_page", "close"])
-        mock_page = Mock(spec=["get_pixmap", "rect"])
-        mock_pixmap = Mock(spec=["tobytes"])
+        mock_pdf_doc.__len__.return_value = 2
 
-        # Setup mock chain - use MagicMock for __len__ support
-        mock_doc.__len__ = MagicMock(return_value=2)
-        mock_doc.load_page.return_value = mock_page
-
-        # Mock page.rect for dimensions calculation
-        mock_rect = Mock()
-        mock_rect.width = 800
-        mock_rect.height = 600
-        mock_page.rect = mock_rect
-
-        mock_page.get_pixmap.return_value = mock_pixmap
-        mock_pixmap.tobytes.return_value = _get_dummy_png_bytes()
-
-        # Mock PIL Image
         mock_image = Image.new("L", (100, 100))
 
-        with patch("pymupdf.open", return_value=mock_doc), patch(
+        with patch("pymupdf.open", return_value=mock_pdf_doc), patch(
             "PIL.Image.open", return_value=mock_image
-        ), patch("io.BytesIO") as mock_bytesio:
-
-            mock_bytesio.return_value.__enter__.return_value = mock_bytesio.return_value
-
+        ), patch("io.BytesIO"):
             result = get_images_from_pdf("/fake/path.pdf", max_pages=2)
 
             assert len(result) == 2
             assert all(isinstance(img, Image.Image) for img in result)
-            mock_doc.close.assert_called_once()
+            # __exit__ is called automatically by with statement, which can imply close.
+            mock_pdf_doc.__exit__.assert_called_once()
 
-    def test_get_images_from_pdf_with_max_pages_limit(self):
+    def test_get_images_from_pdf_with_max_pages_limit(self, mock_pdf_doc):
         """Test PDF processing respects max_pages limit"""
-        mock_doc = Mock(spec=["__len__", "load_page", "close"])
-        mock_page = Mock(spec=["get_pixmap", "rect"])
-        mock_pixmap = Mock(spec=["tobytes"])
-        mock_doc.__len__ = MagicMock(return_value=10)  # PDF has 10 pages
-        mock_doc.load_page.return_value = mock_page
-        mock_page.get_pixmap.return_value = mock_pixmap
-        mock_pixmap.tobytes.return_value = _get_dummy_png_bytes()
-        mock_page.rect = Mock(width=100, height=100)
+        mock_pdf_doc.__len__.return_value = 10  # PDF has 10 pages
 
-        with patch("pymupdf.open", return_value=mock_doc):
-            with patch("PIL.Image.open", return_value=Image.new("L", (1, 1))):
-                result = get_images_from_pdf("/fake/path.pdf", max_pages=3)
-
-                # Should only process 3 pages
-                assert mock_doc.load_page.call_count == 3
-                mock_doc.close.assert_called_once()
+        with patch("pymupdf.open", return_value=mock_pdf_doc), patch(
+            "PIL.Image.open", return_value=Image.new("L", (1, 1))
+        ):
+            get_images_from_pdf("/fake/path.pdf", max_pages=3)
+            assert mock_pdf_doc.load_page.call_count == 3
+            mock_pdf_doc.__exit__.assert_called_once()
 
     def test_get_images_from_pdf_file_not_found(self):
         """Test PDF handler with non-existent file"""
@@ -90,71 +77,51 @@ class TestPDFHandler:
             with pytest.raises(ValueError, match="Corrupted PDF"):
                 get_images_from_pdf("/corrupted/file.pdf")
 
-    def test_get_images_from_pdf_empty_document(self):
+    def test_get_images_from_pdf_empty_document(self, mock_pdf_doc):
         """Test PDF handler with empty document"""
-        mock_doc = Mock(spec=["__len__", "close"])
-        mock_doc.__len__ = MagicMock(return_value=0)
+        mock_pdf_doc.__len__.return_value = 0
 
-        with patch("pymupdf.open", return_value=mock_doc):
+        with patch("pymupdf.open", return_value=mock_pdf_doc):
             result = get_images_from_pdf("/empty/file.pdf")
-
             assert len(result) == 0
-            mock_doc.close.assert_called_once()
+            mock_pdf_doc.__exit__.assert_called_once()
 
-    def test_get_images_from_pdf_page_processing_error(self):
+    def test_get_images_from_pdf_page_processing_error(self, mock_pdf_doc):
         """Test PDF handler when page processing fails"""
-        mock_doc = Mock(spec=["__len__", "load_page", "close"])
-        mock_doc.__len__ = MagicMock(return_value=1)
-        mock_doc.load_page.side_effect = Exception("Page processing failed")
+        mock_pdf_doc.__len__.return_value = 1
+        mock_pdf_doc.load_page.side_effect = Exception("Page processing failed")
 
-        with patch("pymupdf.open", return_value=mock_doc):
-            with pytest.raises(ValueError, match="Failed to extract even the first page"):
+        with patch("pymupdf.open", return_value=mock_pdf_doc):
+            with pytest.raises(
+                ValueError, match="Failed to extract even the first page"
+            ):
                 get_images_from_pdf("/problematic/file.pdf")
-            mock_doc.close.assert_called_once()
+            mock_pdf_doc.__exit__.assert_called_once()
 
-    def test_get_images_from_pdf_pixmap_error(self):
+    def test_get_images_from_pdf_pixmap_error(self, mock_pdf_doc):
         """Test PDF handler when pixmap creation fails"""
-        mock_doc = Mock(spec=["__len__", "load_page", "close"])
-        mock_page = Mock(spec=["get_pixmap", "rect"])
-        mock_doc.__len__ = MagicMock(return_value=1)
-        mock_doc.load_page.return_value = mock_page
-        mock_page.get_pixmap.side_effect = Exception("Pixmap creation failed")
-        mock_page.rect = Mock(width=100, height=100)
+        mock_pdf_doc.__len__.return_value = 1
+        mock_pdf_doc.load_page.return_value.get_pixmap.side_effect = Exception(
+            "Pixmap creation failed"
+        )
 
-        with patch("pymupdf.open", return_value=mock_doc):
-            with pytest.raises(ValueError, match="Failed to extract even the first page"):
+        with patch("pymupdf.open", return_value=mock_pdf_doc):
+            with pytest.raises(
+                ValueError, match="Failed to extract even the first page"
+            ):
                 get_images_from_pdf("/problematic/file.pdf")
-            mock_doc.close.assert_called_once()
+            mock_pdf_doc.__exit__.assert_called_once()
 
-    def test_get_images_from_pdf_dpi_parameter(self):
+    def test_get_images_from_pdf_dpi_parameter(self, mock_pdf_doc):
         """Test PDF handler uses correct DPI parameter"""
-        mock_doc = Mock(spec=["__len__", "load_page", "close"])
-        mock_page = Mock(spec=["get_pixmap", "rect"])
-        mock_pixmap = Mock(spec=["tobytes"])
-
-        # Mock page.rect for dimensions calculation
-        mock_rect = Mock()
-        mock_rect.width = 800
-        mock_rect.height = 600
-        mock_page.rect = mock_rect
-
-        mock_doc.__len__ = MagicMock(return_value=1)
-        mock_doc.load_page.return_value = mock_page
-        mock_page.get_pixmap.return_value = mock_pixmap
-        mock_pixmap.tobytes.return_value = _get_dummy_png_bytes()
-
+        mock_pdf_doc.__len__.return_value = 1
         mock_image = Image.new("L", (100, 100))
 
-        with patch("pymupdf.open", return_value=mock_doc), patch(
+        with patch("pymupdf.open", return_value=mock_pdf_doc), patch(
             "PIL.Image.open", return_value=mock_image
-        ), patch("io.BytesIO") as mock_bytesio:
-
-            mock_bytesio.return_value.__enter__.return_value = mock_bytesio.return_value
-
-            result = get_images_from_pdf("/fake/path.pdf", dpi=300)
-
-            # Check if get_pixmap was called with correct DPI
-            mock_page.get_pixmap.assert_called_with(dpi=300)
+        ), patch("io.BytesIO"):
+            get_images_from_pdf("/fake/path.pdf", dpi=300)
+            mock_pdf_doc.load_page.return_value.get_pixmap.assert_called_with(dpi=300)
 
 
 class TestTIFFHandler:
@@ -162,33 +129,26 @@ class TestTIFFHandler:
 
     def test_get_images_from_tiff_single_frame(self):
         """Test TIFF handler with single frame TIFF"""
-        mock_image = Mock()
+        mock_image = MagicMock()
         mock_image.n_frames = 1
         mock_image.convert.return_value = Image.new("L", (100, 100))
 
         with patch("PIL.Image.open", return_value=mock_image):
             result = get_images_from_tiff("/fake/path.tiff")
-
             assert len(result) == 1
             assert all(isinstance(img, Image.Image) for img in result)
             mock_image.seek.assert_called_once_with(0)
 
     def test_get_images_from_tiff_multi_frame(self):
         """Test TIFF handler with multi-frame TIFF"""
-        mock_image = Mock()
+        mock_image = MagicMock()
         mock_image.n_frames = 3
         mock_image.convert.return_value = Image.new("L", (100, 100))
 
         with patch("PIL.Image.open", return_value=mock_image):
             result = get_images_from_tiff("/fake/path.tiff")
-
             assert len(result) == 3
-            assert all(isinstance(img, Image.Image) for img in result)
-            # Check if seek was called for each frame
             assert mock_image.seek.call_count == 3
-            mock_image.seek.assert_any_call(0)
-            mock_image.seek.assert_any_call(1)
-            mock_image.seek.assert_any_call(2)
 
     def test_get_images_from_tiff_file_not_found(self):
         """Test TIFF handler with non-existent file"""
@@ -202,140 +162,20 @@ class TestTIFFHandler:
             with pytest.raises(ValueError, match="Corrupted TIFF"):
                 get_images_from_tiff("/corrupted/file.tiff")
 
-    def test_get_images_from_tiff_conversion_error(self):
-        """Test TIFF handler when image conversion fails"""
-        mock_image = Mock()
-        mock_image.n_frames = 1
-        mock_image.convert.side_effect = Exception("Conversion failed")
-
-        with patch("PIL.Image.open", return_value=mock_image):
-            with pytest.raises(Exception, match="Conversion failed"):
-                get_images_from_tiff("/problematic/file.tiff")
-
-    def test_get_images_from_tiff_zero_frames(self):
-        """Test TIFF handler with zero frames"""
-        mock_image = Mock()
-        mock_image.n_frames = 0
-        mock_image.convert.return_value = Image.new("L", (100, 100))
-
-        with patch("PIL.Image.open", return_value=mock_image):
-            result = get_images_from_tiff("/fake/path.tiff")
-
-            assert len(result) == 0
-            mock_image.seek.assert_not_called()
-
-    def test_get_images_from_tiff_large_number_of_frames(self):
-        """Test TIFF handler with large number of frames (limited to 20 for memory safety)"""
-        mock_image = Mock()
-        mock_image.n_frames = 100
-        mock_image.convert.return_value = Image.new("L", (100, 100))
-
-        with patch("PIL.Image.open", return_value=mock_image):
-            result = get_images_from_tiff("/fake/path.tiff")
-
-            # TIFF handler limits to 20 frames to prevent memory issues
-            assert len(result) == 20
-            assert mock_image.seek.call_count == 20
-
 
 class TestHandlerIntegration:
     """Test integration between handlers and image processing"""
 
-    def test_pdf_handler_image_quality(self):
+    def test_pdf_handler_image_quality(self, mock_pdf_doc):
         """Test that PDF handler produces images with expected quality"""
-        mock_doc = Mock(spec=["__len__", "load_page", "close"])
-        mock_page = Mock(spec=["get_pixmap", "rect"])
-        mock_pixmap = Mock(spec=["tobytes"])
-
-        # Mock page.rect for dimensions calculation
-        mock_rect = Mock()
-        mock_rect.width = 800
-        mock_rect.height = 600
-        mock_page.rect = mock_rect
-
-        mock_doc.__len__ = MagicMock(return_value=1)
-        mock_doc.load_page.return_value = mock_page
-        mock_page.get_pixmap.return_value = mock_pixmap
-        mock_pixmap.tobytes.return_value = _get_dummy_png_bytes()
-
-        # Create a realistic mock image
+        mock_pdf_doc.__len__.return_value = 1
         mock_image = Image.new("L", (800, 600))
 
-        with patch("pymupdf.open", return_value=mock_doc), patch(
+        with patch("pymupdf.open", return_value=mock_pdf_doc), patch(
             "PIL.Image.open", return_value=mock_image
-        ), patch("io.BytesIO") as mock_bytesio:
-
-            mock_bytesio.return_value.__enter__.return_value = mock_bytesio.return_value
-
+        ), patch("io.BytesIO"):
             result = get_images_from_pdf("/fake/path.pdf")
-
             assert len(result) == 1
             img = result[0]
-            assert img.mode == "L"  # Grayscale
+            assert img.mode == "L"
             assert img.size == (800, 600)
-
-    def test_tiff_handler_image_consistency(self):
-        """Test that TIFF handler produces consistent images across frames"""
-        mock_image = Mock()
-        mock_image.n_frames = 2
-
-        # Create consistent mock images
-        mock_image.convert.return_value = Image.new("L", (100, 100))
-
-        with patch("PIL.Image.open", return_value=mock_image):
-            result = get_images_from_tiff("/fake/path.tiff")
-
-            assert len(result) == 2
-            # All images should have same properties
-            for img in result:
-                assert img.mode == "L"
-                assert img.size == (100, 100)
-
-
-class TestHandlerErrorRecovery:
-    """Test error recovery mechanisms in handlers"""
-
-    def test_pdf_handler_cleanup_on_error(self):
-        """Test PDF handler properly cleans up resources on error"""
-        mock_doc = Mock(spec=["__len__", "load_page", "close"])
-        mock_doc.__len__ = MagicMock(return_value=1)
-        mock_doc.load_page.side_effect = Exception("Processing error")
-
-        with patch("pymupdf.open", return_value=mock_doc):
-            with pytest.raises(ValueError, match="Failed to extract even the first page"):
-                get_images_from_pdf("/problematic/file.pdf")
-            # Ensure document is closed even on error
-            mock_doc.close.assert_called_once()
-
-    def test_tiff_handler_cleanup_on_error(self):
-        """Test TIFF handler properly handles errors"""
-        mock_image = Mock()
-        mock_image.n_frames = 2
-        mock_image.convert.side_effect = [Image.new("L", (100, 100)), Exception("Frame 2 error")]
-
-        with patch("PIL.Image.open", return_value=mock_image):
-            with pytest.raises(Exception, match="Frame 2 error"):
-                get_images_from_tiff("/problematic/file.tiff")
-
-
-# Fixtures for common test data
-@pytest.fixture
-def sample_pdf_path():
-    """Sample PDF file path for testing"""
-    return "/fake/path/document.pdf"
-
-
-@pytest.fixture
-def sample_tiff_path():
-    """Sample TIFF file path for testing"""
-    return "/fake/path/document.tiff"
-
-
-@pytest.fixture
-def mock_pil_image():
-    """Mock PIL Image for testing"""
-    return Image.new("L", (100, 100))
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])

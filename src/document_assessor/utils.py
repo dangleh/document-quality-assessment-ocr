@@ -101,20 +101,21 @@ def get_logger(name: str) -> logging.Logger:
 
 
 # File operations with better error handling
-def load_json(file_path: Path) -> Any:
+def load_json(file_path: str) -> Any:
     """Load JSON file with comprehensive error handling"""
+    path = Path(file_path)
     try:
-        if not file_path.exists():
-            raise FileNotFoundError(f"File not found: {file_path}")
+        if not path.exists():
+            raise FileNotFoundError(f"File not found: {path}")
 
-        if not file_path.is_file():
-            raise ValueError(f"Path is not a file: {file_path}")
+        if not path.is_file():
+            raise ValueError(f"Path is not a file: {path}")
 
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         logger = get_logger(__name__)
-        logger.info(f"Successfully loaded JSON file: {file_path}")
+        logger.info(f"Successfully loaded JSON file: {path}")
         return data
 
     except FileNotFoundError as e:
@@ -123,40 +124,41 @@ def load_json(file_path: Path) -> Any:
         raise
     except json.JSONDecodeError as e:
         logger = get_logger(__name__)
-        logger.error(f"Invalid JSON format in {file_path}: {e}")
+        logger.error(f"Invalid JSON format in {path}: {e}")
         raise
     except PermissionError as e:
         logger = get_logger(__name__)
-        logger.error(f"Permission denied accessing {file_path}: {e}")
+        logger.error(f"Permission denied accessing {path}: {e}")
         raise
     except Exception as e:
         logger = get_logger(__name__)
-        logger.error(f"Unexpected error loading {file_path}: {e}")
+        logger.error(f"Unexpected error loading {path}: {e}")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
 
 def save_json(
-    data: Any, file_path: Path, ensure_ascii: bool = False, indent: int = 4
+    data: Any, file_path: str, ensure_ascii: bool = False, indent: int = 4
 ) -> None:
     """Save data to JSON file with comprehensive error handling"""
+    path = Path(file_path)
     try:
         # Create directory if it doesn't exist
-        file_path.parent.mkdir(parents=True, exist_ok=True)
+        path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(file_path, "w", encoding="utf-8") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=ensure_ascii, indent=indent)
 
         logger = get_logger(__name__)
-        logger.info(f"Successfully saved data to: {file_path}")
+        logger.info(f"Successfully saved data to: {path}")
 
     except PermissionError as e:
         logger = get_logger(__name__)
-        logger.error(f"Permission denied writing to {file_path}: {e}")
+        logger.error(f"Permission denied writing to {path}: {e}")
         raise
     except Exception as e:
         logger = get_logger(__name__)
-        logger.error(f"Unexpected error saving to {file_path}: {e}")
+        logger.error(f"Unexpected error saving to {path}: {e}")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
