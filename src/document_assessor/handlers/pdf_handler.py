@@ -1,28 +1,56 @@
-import gc
 import logging
-import os
-
-# Import utilities
-import sys
 import time
 from io import BytesIO
 
-import pymupdf
 import psutil
+import pymupdf
 from PIL import Image
 
 from ..utils import (
     get_file_size_mb,
     get_image_info,
     log_resource_usage,
-    logging,
     monitor_resources,
 )
 
 
-def get_images_from_pdf(path: str, max_pages: int = 5, dpi: int = 72) -> list[Image.Image]:
+def _page_to_image_bytes(doc, page_num: int, dpi: int, logging, monitor) -> bytes:
     """
-    Extracts images from a PDF file, page by page, with careful memory management.
+    Loads a single page, converts it to PNG bytes, and handles logging.
+    By isolating this logic, large objects (`page`, `pix`) are scoped locally
+    and garbage collected automatically when the function returns.
+    """
+    page = doc.load_page(page_num)
+    logging.info(f"Page {page_num + 1} loaded")
+
+    # Get page dimensions for resource analysis
+    page_rect = page.rect
+    expected_pixmap_size_mb = (
+        page_rect.width * page_rect.height * 4 * (dpi / 72) ** 2
+    ) / (1024 * 1024)
+    logging.info(
+        f"Page {page_num + 1} dimensions: {page_rect.width:.1f} x {page_rect.height:.1f}, Expected pixmap size: {expected_pixmap_size_mb:.2f} MB"
+    )
+
+    # Create pixmap with specified DPI
+    pix = page.get_pixmap(dpi=dpi)
+    logging.info(f"Pixmap created for page {page_num + 1}")
+
+    # Sample memory after pixmap creation
+    monitor.sample(f"after_pixmap_{page_num + 1}")
+
+    img_bytes = pix.tobytes("png")
+    logging.info(f"PNG bytes extracted for page {page_num + 1}")
+
+    return img_bytes
+
+
+def get_images_from_pdf(
+    path: str, max_pages: int = 5, dpi: int = 72
+) -> list[Image.Image]:
+    """
+    Extracts images from a PDF file, page by page, using a helper function
+    for better memory management.
     """
     file_size_mb = get_file_size_mb(path)
     images = []
@@ -38,29 +66,13 @@ def get_images_from_pdf(path: str, max_pages: int = 5, dpi: int = 72) -> list[Im
                 logging.info(f"Processing {actual_max_pages} pages with DPI: {dpi}")
 
                 for page_num in range(actual_max_pages):
-                    page = None
-                    pix = None
                     try:
                         logging.info(f"Processing page {page_num + 1}...")
                         monitor.sample(f"before_page_{page_num + 1}")
 
-                        page = doc.load_page(page_num)
-                        logging.info(f"Page {page_num + 1} loaded")
-
-                        page_rect = page.rect
-                        expected_pixmap_size_mb = (
-                            page_rect.width * page_rect.height * 4 * (dpi / 72) ** 2
-                        ) / (1024 * 1024)
-                        logging.info(
-                            f"Page {page_num + 1} dimensions: {page_rect.width:.1f} x {page_rect.height:.1f}, Expected pixmap size: {expected_pixmap_size_mb:.2f} MB"
+                        img_bytes = _page_to_image_bytes(
+                            doc, page_num, dpi, logging, monitor
                         )
-
-                        pix = page.get_pixmap(dpi=dpi)
-                        logging.info(f"Pixmap created for page {page_num + 1}")
-                        monitor.sample(f"after_pixmap_{page_num + 1}")
-
-                        img_bytes = pix.tobytes("png")
-                        logging.info(f"PNG bytes extracted for page {page_num + 1}")
 
                         img = Image.open(BytesIO(img_bytes)).convert("L")
                         logging.info(f"PIL image created for page {page_num + 1}")
@@ -74,18 +86,14 @@ def get_images_from_pdf(path: str, max_pages: int = 5, dpi: int = 72) -> list[Im
                         monitor.sample(f"after_image_{page_num + 1}")
 
                     except Exception as page_error:
-                        logging.error(f"Error processing page {page_num + 1}: {page_error}")
+                        logging.error(
+                            f"Error processing page {page_num + 1}: {page_error}"
+                        )
                         if not images:
                             raise RuntimeError(
                                 f"Failed to extract even the first page: {page_error}"
                             ) from page_error
                         continue
-                    finally:
-                        # Explicitly free memory for large objects inside the loop
-                        pix = None
-                        page = None
-                        gc.collect()
-                        monitor.sample(f"after_cleanup_{page_num + 1}")
 
             if not images:
                 logging.warning(f"No images extracted from PDF: {path}")
@@ -112,9 +120,6 @@ def get_images_from_pdf(path: str, max_pages: int = 5, dpi: int = 72) -> list[Im
         except Exception as e:
             logging.error(f"PDF convert failed with PyMuPDF: {e}", exc_info=True)
             raise ValueError(str(e)) from e
-        finally:
-            # Final cleanup
-            gc.collect()
 
 
 def test_pdf_handler():
@@ -129,9 +134,6 @@ def test_pdf_handler():
             print(f"\n=== Testing PDF handler with DPI: {dpi} ===")
             images = get_images_from_pdf(test_path, max_pages=1, dpi=dpi)
             print(f"Successfully extracted {len(images)} images with DPI {dpi}")
-
-            # Force garbage collection and wait a bit
-            gc.collect()
             time.sleep(1)
 
         except Exception as e:

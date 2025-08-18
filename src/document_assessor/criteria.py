@@ -5,13 +5,13 @@ import time
 from typing import List, Tuple
 
 import cv2
-import pymupdf
 import numpy as np
+import pymupdf
 from PIL import Image, ImageChops, ImageFilter, ImageStat
 
 from document_assessor.handlers.pdf_handler import get_images_from_pdf
 from document_assessor.handlers.tiff_handler import get_images_from_tiff
-from document_assessor.models import CriteriaConfig, Threshold, CriteriaType
+from document_assessor.models import CriteriaConfig, CriteriaType, Threshold
 from document_assessor.utils import logging
 
 
@@ -23,9 +23,6 @@ def load_criteria_config(config_path: str) -> List[CriteriaConfig]:
     except Exception as e:
         logging.error(f"Error loading/validating config: {e}")
         raise
-
-
-
 
 
 def _get_images_from_path(
@@ -44,11 +41,17 @@ def _get_images_from_path(
         raise ValueError(f"Failed to extract images from {doc_path}: {str(e)}")
 
 
-def estimate_dpi_from_image(img: Image.Image, expected_char_height_mm: float = 2.5) -> float:
+def estimate_dpi_from_image(
+    img: Image.Image, expected_char_height_mm: float = 2.5
+) -> float:
     try:
         cv_img = np.array(img.convert("L"))
-        _, binary_img = cv2.threshold(cv_img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        contours, _ = cv2.findContours(binary_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        _, binary_img = cv2.threshold(
+            cv_img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+        )
+        contours, _ = cv2.findContours(
+            binary_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
         possible_char_heights = [
             cv2.boundingRect(cnt)[3]
             for cnt in contours
@@ -75,7 +78,10 @@ def calculate_skew(img: Image.Image) -> float:
     scores = [
         np.var(
             np.sum(
-                np.array(Image.fromarray(np_img).rotate(angle, expand=True, fillcolor=255)) < 128,
+                np.array(
+                    Image.fromarray(np_img).rotate(angle, expand=True, fillcolor=255)
+                )
+                < 128,
                 axis=1,
             )
         )
@@ -116,7 +122,9 @@ def detect_watermark_fft(img: Image.Image, threshold: float = 0.1) -> float:
         # This normalization factor is empirical and may need tuning.
         normalized_score = max(0, min(100, (score - 1.5) * 20))
 
-        logging.debug(f"FFT watermark detection score: {normalized_score:.2f} (raw score: {score:.2f})")
+        logging.debug(
+            f"FFT watermark detection score: {normalized_score:.2f} (raw score: {score:.2f})"
+        )
         return normalized_score
     except Exception as e:
         logging.error(f"Error during FFT watermark detection: {e}")
@@ -206,8 +214,6 @@ def run_all_checks_for_document(
                 pass
 
             elif name == "resolution":
-                # For nearly blank pages, DPI estimation is unreliable and irrelevant.
-                # Skip this check and let the 'text_density' or 'missing_pages' criteria handle it.
                 text_density_config = next(
                     (c for c in criteria_list if c.name == "text_density"), None
                 )
@@ -224,9 +230,11 @@ def run_all_checks_for_document(
                 if not all(dpis) and doc_format == "pdf":
                     with pymupdf.open(doc_path) as doc:
                         dpis = [
-                            (images[i].size[0] * 72 / page.rect.width)
-                            if page.rect.width > 0
-                            else 0
+                            (
+                                (images[i].size[0] * 72 / page.rect.width)
+                                if page.rect.width > 0
+                                else 0
+                            )
                             for i, page in enumerate(doc)
                             if i < len(images)
                         ]
@@ -238,11 +246,10 @@ def run_all_checks_for_document(
                         reason = f"Resolution too low (metadata_dpi: {agg_dpi:.2f}, estimated_dpi: {estimated_dpi:.2f})"
 
             elif name == "brightness":
-                # Use the robust brightness calculation that trims whitespace borders
                 brightnesses = [calculate_brightness_with_trim(img) for img in images]
                 if not (thresh.min <= _aggregate(brightnesses, "avg") <= thresh.max):
                     pass_check = False
-                    reason = f"Brightness out of range"
+                    reason = "Brightness out of range"
 
             elif name == "blur":
                 variances = [
@@ -257,11 +264,9 @@ def run_all_checks_for_document(
                 skews = [calculate_skew(img) for img in images]
                 if _aggregate([abs(s) for s in skews], "max") > thresh.max_deg:
                     pass_check = False
-                    reason = f"Skew angle too large"
+                    reason = "Skew angle too large"
 
             elif name == "watermark":
-                # The new FFT-based method is used here.
-                # The threshold `max_overlap` in the config now refers to the max FFT score.
                 watermark_scores = [detect_watermark_fft(img) for img in images]
                 if _aggregate(watermark_scores, "max") > thresh.max_overlap:
                     pass_check = False
@@ -281,7 +286,9 @@ def run_all_checks_for_document(
                     diff = diff.point(lambda x: 255 if x > 30 else 0)
                     np_diff = np.array(diff)
                     noise_pixels = np.sum(np_diff == 255)
-                    noise_perc = (noise_pixels / np_diff.size) * 100 if np_diff.size > 0 else 0
+                    noise_perc = (
+                        (noise_pixels / np_diff.size) * 100 if np_diff.size > 0 else 0
+                    )
                     noise_percs.append(noise_perc)
                 max_noise = _aggregate(noise_percs, "max")
                 if max_noise > thresh.max_percent:
@@ -307,7 +314,6 @@ def run_all_checks_for_document(
 
             # 4. Handle result
             if not pass_check:
-                from document_assessor.models import CriteriaType
                 if criteria.type == CriteriaType.required:
                     is_accepted = False
                     reasons.append(reason)
@@ -326,4 +332,3 @@ def run_all_checks_for_document(
     except Exception as e:
         logging.error(f"Error processing {doc_path}: {e}", exc_info=True)
         return False, [f"Critical error during evaluation: {str(e)}"], []
-

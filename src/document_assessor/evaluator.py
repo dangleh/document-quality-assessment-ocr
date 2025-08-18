@@ -2,7 +2,7 @@ import logging
 import os
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from document_assessor.criteria import CriteriaConfig, run_all_checks_for_document
 from document_assessor.models import Document, DocumentBatch
@@ -23,26 +23,22 @@ def evaluate_document_worker(
     start_time = time.time()
 
     try:
-        # The timeout is now handled by the ProcessPoolExecutor's future.
-        # However, we can keep a safeguard here if needed, or rely on the caller.
-        # For simplicity, we'll call the main function directly.
         is_accepted, reasons, warnings = run_all_checks_for_document(
             doc.documentPath, doc.documentFormat, criteria_list
         )
 
         if time.time() - start_time > timeout_seconds:
-            # This check is now post-evaluation, which is not ideal.
-            # The primary timeout should be managed by the caller of this worker.
-            logging.warning(f"Evaluation for {doc.documentID} exceeded timeout of {timeout_seconds}s")
-            # We might decide to override the result if it timed out.
-            # For now, we just log it.
+            logging.warning(
+                f"Evaluation for {doc.documentID} exceeded timeout of {timeout_seconds}s"
+            )
 
         return is_accepted, reasons, warnings
 
     except Exception as e:
         error_msg = f"Unexpected error during evaluation: {str(e)}"
         logging.error(
-            f"Critical error in worker for doc {doc.documentID}: {error_msg}", exc_info=True
+            f"Critical error in worker for doc {doc.documentID}: {error_msg}",
+            exc_info=True,
         )
         return False, [error_msg], []
 
@@ -56,9 +52,11 @@ def run_pipeline(
     start_time = time.time()
     try:
         validated_data = [DocumentBatch.model_validate(item) for item in data]
-        all_docs = {doc.documentID: doc for batch in validated_data for doc in batch.documents}
+        all_docs = {
+            doc.documentID: doc for batch in validated_data for doc in batch.documents
+        }
 
-        metrics = {
+        metrics: Dict[str, Any] = {
             "total_docs": 0,
             "accepted_docs": 0,
             "rejected_docs": 0,
@@ -84,15 +82,12 @@ def run_pipeline(
                 try:
                     is_accepted, reasons, warnings = future.result()
 
-                    # Centralized logging in the main process
                     log_result(doc_id, is_accepted, reasons, warnings)
 
-                    # Update the original document object with the results
                     doc_obj.isAccepted = is_accepted
                     doc_obj.reasons = reasons
                     doc_obj.warnings = warnings
 
-                    # Update metrics
                     metrics["total_docs"] += 1
                     if is_accepted:
                         metrics["accepted_docs"] += 1
@@ -115,26 +110,28 @@ def run_pipeline(
                     doc_obj.isAccepted = False
                     doc_obj.reasons = reasons
 
-                    # Update metrics for critical failure
                     metrics["total_docs"] += 1
                     metrics["rejected_docs"] += 1
-                    metrics["rejected_documents"].append({"documentID": doc_id, "reasons": reasons})
+                    metrics["rejected_documents"].append(
+                        {"documentID": doc_id, "reasons": reasons}
+                    )
                     for r in reasons:
-                        metrics["rejection_summary"][r] = metrics["rejection_summary"].get(r, 0) + 1
+                        metrics["rejection_summary"][r] = (
+                            metrics["rejection_summary"].get(r, 0) + 1
+                        )
 
-        logging.info(f"All documents processed in {time.time() - start_time:.2f} seconds.")
+        logging.info(
+            f"All documents processed in {time.time() - start_time:.2f} seconds."
+        )
 
-        # Export metrics
         from datetime import datetime
 
         run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         export_metrics(run_id, metrics)
 
-        # Create the final output using the *updated* documents from `all_docs`
         final_output = []
         for batch in validated_data:
             batch_dict = batch.model_dump(exclude={"documents"})
-            # Look up the updated doc from the central dictionary to build the final output
             batch_dict["documents"] = [
                 all_docs[doc.documentID].model_dump() for doc in batch.documents
             ]

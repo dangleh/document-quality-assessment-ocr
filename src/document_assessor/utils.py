@@ -1,4 +1,3 @@
-import gc
 import json
 import logging
 import os
@@ -54,7 +53,9 @@ def setup_logging(config: Optional[Dict[str, Any]] = None) -> None:
 
     log_config = config.get("logging", {})
     log_level = getattr(logging, log_config.get("level", "INFO").upper())
-    log_format = log_config.get("format", "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    log_format = log_config.get(
+        "format", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     # Clear existing handlers
     root_logger = logging.getLogger()
@@ -100,10 +101,9 @@ def get_logger(name: str) -> logging.Logger:
 
 
 # File operations with better error handling
-def load_json(file_path: str) -> Any:
+def load_json(file_path: Path) -> Any:
     """Load JSON file with comprehensive error handling"""
     try:
-        file_path = Path(file_path)
         if not file_path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
 
@@ -136,11 +136,11 @@ def load_json(file_path: str) -> Any:
         raise
 
 
-def save_json(data: Any, file_path: str, ensure_ascii: bool = False, indent: int = 4) -> None:
+def save_json(
+    data: Any, file_path: Path, ensure_ascii: bool = False, indent: int = 4
+) -> None:
     """Save data to JSON file with comprehensive error handling"""
     try:
-        file_path = Path(file_path)
-
         # Create directory if it doesn't exist
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -312,7 +312,9 @@ def get_image_info(image) -> Dict[str, Any]:
             "mode": image.mode,
             "size_bytes": len(image.tobytes()) if hasattr(image, "tobytes") else 0,
             "size_mb": (
-                round(len(image.tobytes()) / 1024 / 1024, 3) if hasattr(image, "tobytes") else 0
+                round(len(image.tobytes()) / 1024 / 1024, 3)
+                if hasattr(image, "tobytes")
+                else 0
             ),
         }
     except Exception:
@@ -320,10 +322,13 @@ def get_image_info(image) -> Dict[str, Any]:
 
 
 def log_resource_usage(
-    stage: str, memory_mb: float, cpu_percent: float, additional_info: Dict[str, Any] = None
+    stage: str,
+    memory_mb: float,
+    cpu_percent: float,
+    additional_info: Optional[Dict[str, Any]] = None,
 ):
     """Log resource usage information"""
-    info = {
+    info: Dict[str, Any] = {
         "stage": stage,
         "memory_mb": round(memory_mb, 2),
         "cpu_percent": round(cpu_percent, 2),

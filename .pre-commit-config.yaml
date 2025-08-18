@@ -1,0 +1,41 @@
+# .pre-commit-config.yaml
+# For more information, see https://pre-commit.com
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+
+-   repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+    -   id: black
+        language_version: python3.9
+
+-   repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: isort (python)
+        args: ["--profile", "black"]
+
+-   repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+    -   id: flake8
+        # Ignore E501 (line too long) because black handles it
+        # Ignore W503 (line break before binary operator) for black compatibility
+        # Ignore E231 (missing whitespace after ',') and E221 (multiple spaces before operator) as black handles them
+        args: ['--ignore=E501,W503,E231,E221']
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.3.0'
+    hooks:
+    -   id: mypy
+        # Mypy can be slow, so we only run it on changed files
+        files: ^src/
+        args: [--ignore-missing-imports]
+        additional_dependencies: [pydantic]

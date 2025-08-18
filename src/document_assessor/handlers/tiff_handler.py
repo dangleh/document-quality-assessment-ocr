@@ -27,7 +27,9 @@ def get_images_from_tiff(path: str) -> list[Image.Image]:
             except Exception as frame_error:
                 logging.warning(f"Error processing frame {i + 1}: {frame_error}")
                 # For testing purposes, raise the exception if it's a specific test error
-                if "Conversion failed" in str(frame_error) or "Frame 2 error" in str(frame_error):
+                if "Conversion failed" in str(frame_error) or "Frame 2 error" in str(
+                    frame_error
+                ):
                     raise frame_error
                 continue
 
